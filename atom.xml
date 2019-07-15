@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-15T13:08:28.569Z</updated>
+    <updated>2019-07-15T13:12:25.926Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -63,7 +63,7 @@ IP填写<a href="https://help.github.com/en/articles/setting-up-an-apex-domain#c
 <strong>注意：一定不要忘记在Gridea中配置CNAME，否则Gridea同步时调用git上传文章会删除远程github仓库中的CNAME，导致域名不可达：</strong><br>
 <img src="https://meetbetter.github.io/post-images/1563181533762.png" alt=""></li>
 </ol>
-<p>现在你就可以在自己的域名上写博客了，更加努力的分享自己写bug的经验吧。</p>
+<p>现在你就可以在专属域名上浏览自己博客了，更加努力的分享自己写bug的经验吧。</p>
 ]]></content>
     </entry>
     <entry>
