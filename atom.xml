@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-15T13:19:16.415Z</updated>
+    <updated>2019-07-15T14:27:46.423Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -53,7 +53,7 @@
 <img src="https://meetbetter.github.io/post-images/1563193417614.png" alt=""><br>
 IP填写<a href="https://help.github.com/en/articles/setting-up-an-apex-domain#configuring-a-records-with-your-dns-provider">这个地址</a>找到的最新IP，CNAME写<code>你的github用户名.github.io</code></p>
 <blockquote>
-<p>设置DNS解析服务器后一般需要几分钟到几个小时来同步，可以使用<a href="https://tool.chinaz.com/dns/?type=1&amp;host=bettertxt.top&amp;ip=">DNS查询</a>确认DNS是否配置正确。</p>
+<p>设置DNS解析服务器后可能需要几分钟甚至几个小时来同步，可以使用<a href="https://tool.chinaz.com/dns/?type=1&amp;host=bettertxt.top&amp;ip=">DNS查询</a>确认DNS是否配置正确。</p>
 </blockquote>
 <h2 id="设置cname">设置CNAME</h2>
 <ol>
@@ -63,7 +63,7 @@ IP填写<a href="https://help.github.com/en/articles/setting-up-an-apex-domain#c
 域名前不加http或www修饰，记得勾选Enforce HTTPS，否则访问该域名会因缺少证书而被浏览器报不安全。</li>
 <li>Gridea基础配置中的CNAME填入你的域名，不加http或www前缀。<br>
 <img src="https://meetbetter.github.io/post-images/1563190931089.png" alt=""><br>
-<strong>注意：一定不要忘记在Gridea中配置CNAME，否则Gridea同步时调用git上传文章会删除远程github仓库中的CNAME，导致域名不可达：</strong><br>
+<strong>注意：一定要先在Gridea中基础配置中配置CNAME，否则Gridea同步时调用git上传文章会导致在步骤1中设置的github中CNAME被删除，进而出现下面的域名不可达的问题：</strong><br>
 <img src="https://meetbetter.github.io/post-images/1563181533762.png" alt=""></li>
 </ol>
 <p>现在你就可以在专属域名上浏览自己博客了，更加努力的分享自己写bug的经验吧。</p>
