@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-15T09:36:47.863Z</updated>
+    <updated>2019-07-15T09:44:51.865Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -21,7 +21,10 @@
 <h1 id="绑定个人域名">绑定个人域名</h1>
 <p>**问题：**Grida会配置个人域名时会删除github中的CNAME，导致域名不可达。<br>
 <img src="https://meetbetter.github.io/post-images/1563181533762.png" alt=""><br>
-解决办法</p>
+原因：<br>
+<img src="https://meetbetter.github.io/post-images/1563183866574.png" alt=""><br>
+解决办法<br>
+<img src="https://meetbetter.github.io/post-images/1563183843618.png" alt=""></p>
 ]]></content>
     </entry>
     <entry>
