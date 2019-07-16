@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>Go slice：切片的“陷阱”和本质 | Betterman</title>
+<title>fastDFS-组成和HA高可用集群 | Betterman</title>
 <meta name="description" content="我的小屋
 在星星下面 在城市的楼群之间">
 
@@ -113,71 +113,26 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">Go slice：切片的“陷阱”和本质</h2>
-            <div class="post-date">2018-09-12</div>
+            <h2 class="post-title">fastDFS-组成和HA高可用集群</h2>
+            <div class="post-date">2019-05-15</div>
             
             <div class="post-content">
-              <h1 id="文章说明">文章说明</h1>
-<p>总结了go语言中切片slice的特殊性和使用时的注意事项。</p>
-<p>个人理解，不足之处欢迎指出。</p>
-<p>slice：切片，是go语言中一种常用的数据结构，基于数组构建，表示相同数据类型的集合。</p>
-<h1 id="数组">数组</h1>
-<p>Go中数组类型表示固定长度的相同类型的数据的集合，数据在内存中连续存储，可以通过下标索引，但是又有特殊的地方：</p>
-<ul>
-<li>数组是值类型，一个数组变量表示整个数组，而不是指向数组的首元素的指针，这和C语言不同。</li>
-<li>将数组赋值给另一个数组，或者数组作函数参数传递时，会将数组的全部数据拷贝一份过去而不是传递一个指针。</li>
-<li>数组类型包括长度，即[5]int和[10]不是一种类型。</li>
-</ul>
-<p>所以Go语言中使用数组传递数据效率很低，通常使用切片。</p>
-<h1 id="切片">切片</h1>
-<p>切片是一个数组片段的描述，包含了指向数组片段的指针，片段的长度len和容量cap（数组片段的最大长度），但是<strong>切片本身并不是真正的指针类型</strong>。</p>
-<h2 id="切片的特性">切片的特性</h2>
-<ol>
-<li>可以自动扩容<br>
-使用append()向切片<strong>追加</strong>数据，数据是被添加到切片指向的片段末尾，长度等于容量时切片就会自动扩容，扩容的细节后面的文章再讨论。</li>
-<li>切片之间赋值或者切片作函数参数传递时，是将指向数组片段的指针传递过去，所以改变一个会影响另一个。</li>
-</ol>
-<h2 id="切片的陷阱">切片的陷阱</h2>
-<p>切片作函数参数传递或浅拷贝时，之所以改变一个切片的数据会影响另一个切片，是因为两个切片中中包含了指向同一数组片段的指针。</p>
-<p>一切看似正常？但是当一个切片发生扩容时，会将当前切片内的数据复制到另一片内存区域，该切片的数组片段的地址发生改变，所以当切片扩容时修改一个切片的数据时不会再影响到另一个切片！此时只能通过传递切片本身的地址来解决。</p>
-<p>扩容时出错的代码如下：</p>
-<pre><code>package main
-
-import &quot;fmt&quot;
-
-func testSlice(slice []int) {
-slice = append(slice, 6, 7, 8, 9, 10)
-fmt.Println(&quot;testSlice:&quot;,slice)
-}
-func main() {
-slice := []int{1, 2, 3, 4, 5}
-
-	testSlice(slice)
-fmt.Println(&quot;main:&quot;,slice)
-}
-</code></pre>
-<h1 id="切片的本质">切片的本质</h1>
-<p>所以，<strong>切片不是指针类型，切片数据类型是包含指向一个数组片段的指针，和当前数组片段的长度，以及当前数组最大容量的一种复合数据结构</strong>。</p>
+              <p><a href="https://blog.csdn.net/shangmingtao/article/details/78522893">全面的fastDFS高可用集群</a><br>
+<a href="https://www.cnblogs.com/youzhibing/p/9187765.html">https://www.cnblogs.com/youzhibing/p/9187765.html</a></p>
+<blockquote>
+<p>这里的集群实现和冰哥说的不一样，是不是多个group可以注册到一个tracker</p>
+</blockquote>
+<p>组成员内部保存的内容是一样的，组成员的地位是一致的，没有 主从的概念。</p>
+<blockquote>
+<p>没有主从？是不是因为fastDFS只能上传和下载文件，不能直接删除，所以只需要将多的文件拷贝过去，那如果手动删除storage一个group中的一个呢</p>
+</blockquote>
+<h1 id="fastdfs介绍">fastDFS介绍</h1>
+<p>Storageserver 没有实现自己的文件系统而是利用操作系统 的文件系统来管理文件</p>
+<h1 id="单机架构">单机架构</h1>
+<h1 id="高可用分布式架构">高可用分布式架构</h1>
 
             </div>
             
-              <div class="tag-container">
-                
-                  <a href="https://meetbetter.github.io/tag/CkXDaoDR0" class="tag">
-                    Golang
-                  </a>
-                
-              </div>
-            
-            
-              <div class="next-post">
-                <div class="next">下一篇</div>
-                <a href="https://meetbetter.github.io/post/about">
-                  <h3 class="post-title">
-                    关于
-                  </h3>
-                </a>
-              </div>
             
 
             
