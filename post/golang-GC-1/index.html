@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>文章归档 | Betterman</title>
+<title>Golang GC垃圾回收机制的理解 | Betterman</title>
 <meta name="description" content="我的小屋
 在星星下面 在城市的楼群之间">
 
@@ -14,6 +14,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
 
 
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
@@ -106,83 +112,53 @@
 
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
-          
+          <div class="post-detail">
+            <h2 class="post-title">Golang GC垃圾回收机制的理解</h2>
+            <div class="post-date">2018-12-30</div>
+            
+            <div class="post-content">
+              <p><a href="https://www.jianshu.com/p/8b0c0f7772da">https://www.jianshu.com/p/8b0c0f7772da</a><br>
+本文内容：先介绍垃圾回收的概念，再分析当前Golang的垃圾回收机制，最后再简单介绍下其他常见的垃圾回收机制。</p>
+<h1 id="什么是垃圾回收">什么是垃圾回收</h1>
+<p>垃圾回收(GC)作用</p>
+<h1 id="go的垃圾回收">go的垃圾回收</h1>
+<p>当前Golang使用的垃圾回收机制是<strong>三色标记发</strong>配合<strong>写屏障</strong>，三色标记法是<strong>标记-清除法</strong>的一种。</p>
+<h2 id="标记-清除法mark-and-sweep">标记-清除法（mark and sweep）</h2>
+<h2 id="三色标记法">三色标记法</h2>
+<p>三色标记法是对标记阶段的改进，原理如下：</p>
+<p>起初所有对象都是白色。<br>
+从根出发扫描所有可达对象，标记为灰色，放入待处理队列。<br>
+从队列取出灰色对象，将其引用对象标记为灰色放入队列，自身标记为黑色。<br>
+重复 3，直到灰色对象队列为空。此时白色对象即为垃圾，进行回收。<br>
+<img src="https://meetbetter.github.io/post-images/1563296640046.gif" alt=""><br>
+那么什么是root呢？<br>
+看了很多文章都没解释这这个概念，在这儿总结下</p>
+<h2 id="写屏障">写屏障</h2>
+<p>GODEBUG=gctrace=1 go run cmd/agent_bin.go</p>
+<h2 id="手动回收垃圾">手动回收垃圾</h2>
+<p>虽然Golang有自动垃圾回收机制，但是为了减少不必要的</p>
 
-          <h2 class="archives-title">文章归档</h2>
-          <div class="archives-container">
+            </div>
             
-              <h2 class="year" data-aos="fade-in" data-aos-delay="500">2019</h2>
+              <div class="tag-container">
+                
+                  <a href="https://meetbetter.github.io/tag/CkXDaoDR0" class="tag">
+                    Golang
+                  </a>
+                
+              </div>
+            
+            
+
+            
               
-                
-                  <article class="post">
-                    <a href="https://meetbetter.github.io/post/github-pages-gridea">
-                      <h2 class="post-title">
-                        Github pages+gridea:超简单的搭建个人博客
-                      </h2>
-                    </a>
-                  </article>
-                
+                <div id="gitalk-container" data-aos="fade-in"></div>
               
-                
-                  <article class="post">
-                    <a href="https://meetbetter.github.io/post/golang-protobuf-learning">
-                      <h2 class="post-title">
-                        Golang protobuf快速上手
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-              
-                
-              
-                
+
               
             
-              <h2 class="year" data-aos="fade-in" data-aos-delay="500">2018</h2>
-              
-                
-              
-                
-              
-                
-                  <article class="post">
-                    <a href="https://meetbetter.github.io/post/go-rpc-learning-1">
-                      <h2 class="post-title">
-                        Go RPC对比和示例
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://meetbetter.github.io/post/go-sliceqie-pian-de-xian-jing-he-ben-zhi">
-                      <h2 class="post-title">
-                        Go slice：切片的“陷阱”和本质
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://meetbetter.github.io/post/about">
-                      <h2 class="post-title">
-                        关于
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-            
+
           </div>
-
-          <div class="pagination-container">
-  
-  
-</div>
 
         </div>
       </div>
@@ -204,6 +180,29 @@ var app = new Vue({
 })
 
 </script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '7c65ded90d138e1d98b6',
+        clientSecret: '82107256fb2d1c871aa25c57faf4a523d8da5a54',
+        repo: 'meetbetter.github.io',
+        owner: 'meetbetter',
+        admin: ['meetbetter'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
 
 
 

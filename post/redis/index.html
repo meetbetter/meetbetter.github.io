@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>文章归档 | Betterman</title>
+<title>redis应用场景优化和高可用 | Betterman</title>
 <meta name="description" content="我的小屋
 在星星下面 在城市的楼群之间">
 
@@ -14,6 +14,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
 
 
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
@@ -106,83 +112,28 @@
 
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
-          
+          <div class="post-detail">
+            <h2 class="post-title">redis应用场景优化和高可用</h2>
+            <div class="post-date">2019-01-12</div>
+            
+            <div class="post-content">
+              <p><a href="https://www.cnblogs.com/joylee/p/redisscene.html">别人总结+自己分表理解</a><br>
+Redis单线程 分布式锁<br>
+<a href="https://juejin.im/post/5b8fc5536fb9a05d2d01fb11">全面的redis系列文章</a></p>
 
-          <h2 class="archives-title">文章归档</h2>
-          <div class="archives-container">
+            </div>
             
-              <h2 class="year" data-aos="fade-in" data-aos-delay="500">2019</h2>
+            
+
+            
               
-                
-                  <article class="post">
-                    <a href="https://meetbetter.github.io/post/github-pages-gridea">
-                      <h2 class="post-title">
-                        Github pages+gridea:超简单的搭建个人博客
-                      </h2>
-                    </a>
-                  </article>
-                
+                <div id="gitalk-container" data-aos="fade-in"></div>
               
-                
-                  <article class="post">
-                    <a href="https://meetbetter.github.io/post/golang-protobuf-learning">
-                      <h2 class="post-title">
-                        Golang protobuf快速上手
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-              
-                
-              
-                
+
               
             
-              <h2 class="year" data-aos="fade-in" data-aos-delay="500">2018</h2>
-              
-                
-              
-                
-              
-                
-                  <article class="post">
-                    <a href="https://meetbetter.github.io/post/go-rpc-learning-1">
-                      <h2 class="post-title">
-                        Go RPC对比和示例
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://meetbetter.github.io/post/go-sliceqie-pian-de-xian-jing-he-ben-zhi">
-                      <h2 class="post-title">
-                        Go slice：切片的“陷阱”和本质
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-                
-                  <article class="post">
-                    <a href="https://meetbetter.github.io/post/about">
-                      <h2 class="post-title">
-                        关于
-                      </h2>
-                    </a>
-                  </article>
-                
-              
-            
+
           </div>
-
-          <div class="pagination-container">
-  
-  
-</div>
 
         </div>
       </div>
@@ -204,6 +155,29 @@ var app = new Vue({
 })
 
 </script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '7c65ded90d138e1d98b6',
+        clientSecret: '82107256fb2d1c871aa25c57faf4a523d8da5a54',
+        repo: 'meetbetter.github.io',
+        owner: 'meetbetter',
+        admin: ['meetbetter'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
 
 
 
