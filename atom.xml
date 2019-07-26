@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-26T04:07:18.792Z</updated>
+    <updated>2019-07-26T07:05:21.308Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -537,6 +537,100 @@ fmt.Println(&quot;main:&quot;,slice)
 </code></pre>
 <h1 id="切片的本质">切片的本质</h1>
 <p>所以，<strong>切片不是指针类型，切片数据类型是包含指向一个数组片段的指针，和当前数组片段的长度，以及当前数组最大容量的一种复合数据结构</strong>。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[WSL(Windows Subsystem for Linux)的安装与使用]]></title>
+        <id>https://meetbetter.github.io/post/win10-wsl</id>
+        <link href="https://meetbetter.github.io/post/win10-wsl">
+        </link>
+        <updated>2018-02-27T11:39:03.000Z</updated>
+        <content type="html"><![CDATA[<p>官方介绍：WSL(Windows Subsystem for Linux)是适用于Linux 的 Windows 子系统，是一个为在Windows 10和Windows Server 2019上能够原生运行Linux二进制可执行文件的兼容层。<br>
+直白的讲，就是<strong>借助WSL可以在Windows10中直接编译出Linux环境的可执行文件，让Windows下的开发有机会摆脱庞大的虚拟机</strong>，有点mac下开发的感觉，特别适合我这种没有mac的贫困码农。</p>
+<h1 id="打开子系统功能">打开子系统功能</h1>
+<p>在win10 power shell输入如下指令：</p>
+<pre><code class="language-shell">Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
+</code></pre>
+<h1 id="win10-安装ubuntu">win10 安装Ubuntu</h1>
+<p>从win10应用商店安装Ubuntu：<br>
+<img src="https://meetbetter.github.io/post-images/1564114438785.jpg" alt=""><br>
+安装后win10桌面会提示设置用户名和密码：<br>
+<img src="https://meetbetter.github.io/post-images/1564123550388.png" alt=""></p>
+<h1 id="go环境配置">GO环境配置</h1>
+<h2 id="goroot配置">GOROOT配置</h2>
+<h3 id="配置共享目录">配置共享目录</h3>
+<p>为了方便的在Windows和WSL之间拷贝文件，要先设置共享目录。<br>
+WSL中的<code>/mnt/c/Users/HideOnBush/</code>路径为Windows10在Linux下的挂载分区，为方便和win10共享文件，在Windows中新建UbuntuShare文件夹，在WSL添加软链接：</p>
+<pre><code class="language-shell">ln -s /mnt/c/Users/HideOnBush/UbuntuShare/ win10
+</code></pre>
+<blockquote>
+<p>HideOnBush是我的Windows中的用户名，需要替换为你实际的Windows用户名哦。</p>
+</blockquote>
+<h3 id="wsl安装go">WSL安装Go</h3>
+<p>从<a href="https://studygolang.com/dl">go语言中文网</a>下载Linux go安装包(我使用的是1.12.5)，放到刚才设置的共享目录中，就可以在WSL中操作了。<br>
+解压到/usr/local：</p>
+<pre><code class="language-shell">cd win10
+sudo tar -xzf go1.12.5.linux-amd64.tar.gz -C /usr/local/
+</code></pre>
+<h2 id="gopath配置">GOPATH配置</h2>
+<p>将Windows和Linux的GOPATH设置为同一个路径，就可以实现在win10写代码时和在Linux编代码共用一套第三方包。</p>
+<h3 id="查看win10环境变量">查看win10环境变量</h3>
+<p><img src="https://meetbetter.github.io/post-images/1564115020270.png" alt=""><br>
+<img src="https://meetbetter.github.io/post-images/1564115125234.png" alt=""><br>
+可以看到我的Windows中GOPATH路径为<code>Users/HideOnBush/go</code>，接下来将WSL中的GOPATH设置为同一路径，完成后续操作就可以方便的在Windows中编写代码并调用Ubuntu编译代码了。</p>
+<h3 id="设置wsl-gopath">设置wsl GOPATH：</h3>
+<pre><code class="language-go">vim ~/.bashrc
+</code></pre>
+<p>末尾添加：</p>
+<pre><code class="language-shell">export GOPATH=/mnt/c/Users/HideOnBush/go
+export GOROOT=/usr/local/go
+export PATH=$GOROOT/bin:$PATH
+</code></pre>
+<p>使修改立即生效：</p>
+<pre><code class="language-shell">source .bashrc
+</code></pre>
+<p>使用<code>go env</code>查看GOPATH是否配置成功：</p>
+<p><img src="https://meetbetter.github.io/post-images/1564116197193.png" alt=""><br>
+可以看到我的GOPATH已经设置为和Windows中的GOPATH一致了。</p>
+<h1 id="更新软件源">更新软件源</h1>
+<pre><code class="language-shell">sudo cp /etc/apt/sources.list /etc/apt/sources.list_origin
+sudo vim /etc/apt/sources.list
+</code></pre>
+<pre><code class="language-shell">deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse
+</code></pre>
+<pre><code class="language-shell">sudo apt-get update //更新源
+sudo apt-get upgrade //根据软件源的信息更新软件
+</code></pre>
+<h1 id="在windows中调用wsl-bash">在Windows中调用WSL bash</h1>
+<p>接下来根据你使用的编译器，将编译器使用的bash修改为WSL内的bash，就可以在Windows下编译出Linux下的可执行文件。</p>
+<h2 id="配合goland-使用">配合goland 使用</h2>
+<h3 id="修改bash为wsl所在路径">修改bash为wsl所在路径</h3>
+<p>找到wsl命令行所在路径，<br>
+<img src="https://meetbetter.github.io/post-images/1564123762337.jpg" alt=""></p>
+<p>设置goland &quot;shell path&quot;,<br>
+<img src="https://meetbetter.github.io/post-images/1564123785522.jpg" alt=""><br>
+修改goland换行符为UINX下的LF：<br>
+<img src="https://meetbetter.github.io/post-images/1564123833128.jpg" alt=""></p>
+<p>terminal测试，<br>
+<img src="https://meetbetter.github.io/post-images/1564123793665.jpg" alt=""></p>
+<blockquote>
+<p>不能直接使用goland的run图标运行，因为goland默认使用的是Windows中的编译环境，必须要在terminal中编译才是使用的WSL的bash编译。</p>
+</blockquote>
+<h2 id="配合vs-code使用">配合vs code使用</h2>
+<p>安装wsl后在vscode terminal可以看到wsl（windows system linux）的窗口，就可以在这儿方便操作Linux。<br>
+<img src="https://meetbetter.github.io/post-images/1564123717689.jpg" alt=""></p>
+<p>为了防止和Linux内编写的文件换行符有冲突，推荐修改换行符为Linux样式，如下：<br>
+<img src="https://meetbetter.github.io/post-images/1564123732107.jpg" alt=""></p>
+<p>至此，Windows10的Linux子系统的开发环境已经基本搭建完成，后续根据你的需要在WSL安装对应工具即可，如果觉得WSL的命令行太难用，可以使用Goland的terminal，或者使用Secure CRT等SSH工具。</p>
 ]]></content>
     </entry>
     <entry>
