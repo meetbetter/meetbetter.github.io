@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-26T07:05:21.308Z</updated>
+    <updated>2019-07-26T07:23:56.545Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -495,7 +495,7 @@ func main() {
         <id>https://meetbetter.github.io/post/go-sliceqie-pian-de-xian-jing-he-ben-zhi</id>
         <link href="https://meetbetter.github.io/post/go-sliceqie-pian-de-xian-jing-he-ben-zhi">
         </link>
-        <updated>2018-09-12T03:59:34.000Z</updated>
+        <updated>2018-04-26T03:59:34.000Z</updated>
         <content type="html"><![CDATA[<h1 id="文章说明">文章说明</h1>
 <p>总结了go语言中切片slice的特殊性和使用时的注意事项。</p>
 <p>个人理解，不足之处欢迎指出。</p>
@@ -536,7 +536,8 @@ fmt.Println(&quot;main:&quot;,slice)
 }
 </code></pre>
 <h1 id="切片的本质">切片的本质</h1>
-<p>所以，<strong>切片不是指针类型，切片数据类型是包含指向一个数组片段的指针，和当前数组片段的长度，以及当前数组最大容量的一种复合数据结构</strong>。</p>
+<p>可以证明，<strong>切片不是指针类型，切片数据类型是包含指向一个数组片段的指针，和当前数组片段的长度，以及当前数组最大容量的一种复合数据结构</strong>。</p>
+<p>想深入了解Go中slice数据类型的底层实现，可以参考本人的Github<a href="https://github.com/meetbetter/Golang-sample-code/blob/master/data_structure/01-slice.go">slice sample code</a></p>
 ]]></content>
     </entry>
     <entry>

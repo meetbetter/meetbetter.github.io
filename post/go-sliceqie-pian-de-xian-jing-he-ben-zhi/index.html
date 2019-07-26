@@ -10,7 +10,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564124698083">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564125549938">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -37,7 +37,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1564124698083" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1564125549938" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -105,7 +105,7 @@
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
             <h2 class="post-title">Go slice：切片的“陷阱”和本质</h2>
-            <div class="post-date">2018-09-12</div>
+            <div class="post-date">2018-04-26</div>
             
             <div class="post-content">
               <h1 id="文章说明">文章说明</h1>
@@ -148,7 +148,8 @@ fmt.Println(&quot;main:&quot;,slice)
 }
 </code></pre>
 <h1 id="切片的本质">切片的本质</h1>
-<p>所以，<strong>切片不是指针类型，切片数据类型是包含指向一个数组片段的指针，和当前数组片段的长度，以及当前数组最大容量的一种复合数据结构</strong>。</p>
+<p>可以证明，<strong>切片不是指针类型，切片数据类型是包含指向一个数组片段的指针，和当前数组片段的长度，以及当前数组最大容量的一种复合数据结构</strong>。</p>
+<p>想深入了解Go中slice数据类型的底层实现，可以参考本人的Github<a href="https://github.com/meetbetter/Golang-sample-code/blob/master/data_structure/01-slice.go">slice sample code</a></p>
 
             </div>
             
