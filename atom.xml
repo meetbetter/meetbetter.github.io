@@ -2,12 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-26T07:23:56.545Z</updated>
+    <updated>2019-07-27T07:08:30.695Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
-    <subtitle>我的小屋
-在星星下面 在城市的楼群之间</subtitle>
+    <subtitle>记录自己，期望可以帮到需要的人</subtitle>
     <logo>https://meetbetter.github.io/images/avatar.png</logo>
     <icon>https://meetbetter.github.io/favicon.ico</icon>
     <rights>All rights reserved 2019, Betterman</rights>
@@ -190,11 +189,163 @@ func main() {
 ]]></content>
     </entry>
     <entry>
+        <title type="html"><![CDATA[Go map底层实现]]></title>
+        <id>https://meetbetter.github.io/post/go-map</id>
+        <link href="https://meetbetter.github.io/post/go-map">
+        </link>
+        <updated>2018-09-30T13:46:28.000Z</updated>
+        <content type="html"><![CDATA[<p>首先否定两个错误说法：“map高效率是因为map是链式结构存储”，“map的无序是因为map是散列表”。这是之前听到的说法，后来深入学习了golang map的底层实现后，发现这些说法是很错误的，现在将个人学习心得整理出来，欢迎指正。</p>
+<h1 id="map的底层实现">map的底层实现</h1>
+<p>粗略的讲，Go语言中map采用的是哈希查找表，由一个key通过哈希函数得到哈希值，64位系统中就生成一个64bit的哈希值，由这个哈希值将key对应到不同的桶（bucket）中，当有多个哈希映射到相同的的桶中时，使用链表解决哈希冲突。<br>
+详细的说，就涉及到map的数据结构哈希函数，hmap，bmap。</p>
+<h2 id="hash函数">hash函数</h2>
+<p>首先要知道的就是map中哈希函数的作用，go中map使用hash作查找，就是将key作哈希运算，得到一个哈希值，根据哈希值确定key-value落在哪个bucket的哪个cell。golang使用的hash算法和CPU有关，如果cpu支持aes，那么使用aes hash，否则使用memhash。</p>
+<h2 id="map的数据结构">map的数据结构</h2>
+<h3 id="hmap">hmap</h3>
+<p>hmap可以理解为 header of map的缩写，即map数据结构的入口。<br>
+map的数据结构定义在<code>runtime/map.go/hmap</code>中，以下注释来自<a href="https://github.com/cch123/golang-notes/blob/master/map.md">曹大Github map源码分析</a>，我修改了部分注释使之更直白：</p>
+<pre><code class="language-go">// header of map
+type hmap struct {
+    count     int // map 中的元素个数，必须放在 struct 的第一个位置，因为 内置的 len 函数会从这里读取
+    flags     uint8 //map状态标识，比如是否在被写或者迁移等，因为map不是线程安全的所以操作时需要判断flags
+    B         uint8  // log_2 of # of buckets (最多可以放 loadFactor * 2^B 个元素即6.5*2^B，再多就要 hashGrow 了)
+    noverflow uint16 // overflow 的 bucket 的近似数
+    hash0     uint32 // hash seed，随机哈希种子可以防止哈希碰撞攻击
+
+    buckets    unsafe.Pointer // 存储数据的buckets数组的指针， 大小2^B，如果 count == 0 的话，可能是 nil
+    oldbuckets unsafe.Pointer // 一半大小的之前的 bucket 数组，只有在 growing 过程中是非 nil
+    nevacuate  uintptr        // 扩容进度标志，小于此地址的buckets已迁移完成。
+
+    extra *mapextra // 可以减少GC扫描，当 key 和 value 都可以 inline 的时候，就会用这个字段
+}
+</code></pre>
+<p>根据注释可以看出各个字段的作用，需要重点说明的是最后一个字段<code>extra *mapextra</code>，针对key和value都不是指针类型的map，并且大小都小于128字节，则使用mapextra来存储，这样可以避免GC扫描整个map。</p>
+<pre><code class="language-go">type mapextra struct {
+    // 如果 key 和 value 都不包含指针，并且可以被 inline(&lt;=128 字节)
+    // 使用 extra 来存储 overflow bucket，这样可以避免 GC 扫描整个 map
+    // 然而 bmap.overflow 也是个指针。这时候我们只能把这些 overflow 的指针
+    // 都放在 hmap.extra.overflow 和 hmap.extra.oldoverflow 中了
+    // overflow 包含的是 hmap.buckets 的 overflow 的 bucket
+    // oldoverflow 包含扩容时的 hmap.oldbuckets 的 overflow 的 bucket
+    overflow    *[]*bmap
+    oldoverflow *[]*bmap
+
+    // 指向空闲的 overflow bucket 的指针
+    nextOverflow *bmap
+}
+</code></pre>
+<h3 id="bmap">bmap</h3>
+<p>bmap可以理解为buckets of map的缩写，她就是map中bucket的本体，即存key和value数据的“桶”。</p>
+<pre><code class="language-go">type bmap struct {
+    // tophash 是 hash 值的高 8 位
+    tophash [bucketCnt]uint8
+		//以下字段没有显示定义在bmap，但是编译时编译器会自动添加
+    // keys //每个桶最多可以装8个key
+    // values //8个key分别有8个value一一对应
+    // overflow pointer  //发生哈希碰撞之后创建的overflow bucket
+}
+</code></pre>
+<p>根据哈希函数将key生成一个哈希值，其中低位哈希用来判断桶位置，高位哈希用来确定在桶中哪个cell。<strong>低位哈希</strong>就是哈希值的低B位，hmap结构体中的B，比如B为5，2^5=32，即该map有32个桶，只需要取哈希值的低5位就可以确定当前key-value落在哪个桶(bucket)中；<strong>高位哈希</strong>即tophash，是指哈希值的高8bits，根据tophash来确定key在桶中的位置。每个桶可以存储8对key-value，存储结构不是key/value/key/value...，而是key/key..value/value，这样可以避免字节对时的padding，节省内存空间。</p>
+<p>仔细想一下，当不同的key根据哈希得到的tophash和低位hash都一样岂不是会覆盖原来的key-value数据？这种情况有个专业名词叫“哈希碰撞”，这个时候就体现<code>overflow pointer</code>字段的作用了。当某一个key根据自己的哈希值找到对应的bucket和key位置时，发现这个位置已经名花有主，即桶溢出了，就需要存储在overflow bucket（溢出桶），overflow pointer就是指向overflow bucket的指针。如果overflow bucket也溢出了呢？那就再给overflow bucket新建一个overflow bucket，用指针串起来就形成了链式结构，所以开头所说的“map是链式存储并不准确”，map本身有2^B个bucket，只有当发生哈希碰撞后才会在bucket后链式增加overflow bucket。</p>
+<h2 id="map内存布局">map内存布局</h2>
+<p>通过上面我们可以想象map在内存中的布局情况：<br>
+一个map对应着多个buckets，每个bucket后面又因为哈希碰撞而存在数量不定的overflow bucket。<br>
+<img src="https://meetbetter.github.io/post-images/1564210141673.png" alt=""></p>
+<h2 id="扩容">扩容</h2>
+<p>再仔细想一下，如果overflow bucket一直链式增加，但是并不是每个bucket的8个cell都是满的，那map的高效率还能保证吗？<br>
+这就需要用到map的扩容机制了，当向map插入数据时，会判断是否满足以下两个条件之一：</p>
+<ol>
+<li>装载因子是否大于6.5</li>
+</ol>
+<blockquote>
+<p>装载因子 = 元素个数/桶个数，大于6.5时说明大部分桶已经要装满，需要扩容。</p>
+</blockquote>
+<ol start="2">
+<li>overflow bucket是否太多。</li>
+</ol>
+<blockquote>
+<p>当 bucket数量 &lt; 2^15时，如果overflow bucket数量大于bucket数量，则说明overflow bucket数量太多了；<br>
+当bucket数量 &gt;= 2^15时，如果overflow bucket数量大于2^15，则说明overflow bucket数量太多了；<br>
+overflow bucket桶太多说明有很多cell空闲，查找效率就会变低。曹大文章里说导致这种情况的原因是map一遍插入一边删除，但map不是线程安全的，一遍插入一边删除会导致panic，所以我的理解不是同时插入，而是先往map中插入了大量哈希值高低位相同的key，导致overflow bucket数量很多，再删除一些数据，这时装载因子并未大于6.5，但却有大量的overflow bucket，这就造成很多bucke的cell空着，却有大量的overflow bucket，从而降低查询效率。</p>
+</blockquote>
+<p>两种触发条件的适用的场景不一致，扩容方法也不一致。针对第一种装载因子过大的情况，只需要bucket数量增加一倍，即B+1。针对第二种overflow太多的情况，使用的方法是移动bucket使其中的key排列更紧密，减少overflow bucket。</p>
+<blockquote>
+<p>但是在极端情况下，比如插入了大量的哈希值高低位相同的key，第二种方法也无能为力，为了解决哈希碰撞不得不使用overflow bucket，此时map变成了链式存储，查询和插入效率就会变低，hmap中的hash0字段是makemap时的rand seed，可以降低这种极端情况的发生 。</p>
+</blockquote>
+<p>在第一种情况下，B+1之后，根据key的哈希值低B位查找落在哪个桶也需要加一，即向前多取一位哈希值来当作新的低哈希，所以数据搬移后原来的key可能落在其他桶中，取决于向前取的这一位是0还是1。<br>
+另外，map的扩容是渐进式的扩容，并不是一次性将原bucket的数据搬移到新的地址，这样未免太占用CPU了，而是在每一次访问旧buckets时就搬移一部分，直到全部搬移完成，旧的buckets被GC回收。</p>
+<h1 id="map无序的原因">map无序的原因</h1>
+<p>之前在网上看到说因为map是哈希的，所以遍历出来是无序的。我？？？其实<strong>Go map遍历出的结果是随机的是因为Go设计者故意这样做的</strong>。<br>
+分析如下：<br>
+通过上面的学习已经知道，map的本质是散列表，而map的增长扩容会导致重新进行散列，这就可能使map的遍历结果在扩容前后变得不可靠，Go设计者为了让大家不依赖遍历的顺序，故意在实现map遍历时加入了随机数，让每次遍历的起点--即起始bucket的位置--不一样，所以即使未扩容时我们遍历出来的map也总是无序的(<em><sup>_</sup></em>)。<br>
+看一下runtime.mapiterinit源码：</p>
+<pre><code class="language-go">func mapiterinit(t *maptype, h *hmap, it *hiter) {
+    ...
+    it.t = t
+    it.h = h
+    it.B = h.B
+    it.buckets = h.buckets
+    if t.bucket.kind&amp;kindNoPointers != 0 {
+        h.createOverflow()
+        it.overflow = h.extra.overflow
+        it.oldoverflow = h.extra.oldoverflow
+    }
+
+    r := uintptr(fastrand())
+    if h.B &gt; 31-bucketCntBits {
+        r += uintptr(fastrand()) &lt;&lt; 31
+    }
+    it.startBucket = r &amp; bucketMask(h.B)
+    it.offset = uint8(r &gt;&gt; h.B &amp; (bucketCnt - 1))
+    it.bucket = it.startBucket
+    ...
+
+    mapiternext(it)
+}
+</code></pre>
+<p>这个函数是map遍历前的初始化操作，注意看<code>fastrand())</code>，根据名字也可以猜出它的作用了吧，就是<code>fastrand())</code>生成随机数让每次遍历的起始位置不停变化。<br>
+个人猜测不同CPU下哈希函数的选择可能不同也是促使go设计者这样做的原因之一。</p>
+<h2 id="让map变有序的方法">让map变有序的方法</h2>
+<p>如果想让map遍历结果变得有序，可以自己对map的key进行依次排序，实现如下：</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;sort&quot;
+)
+
+func main() {
+	m := make(map[string]string)
+	m[&quot;111&quot;] = &quot;1111&quot;
+	m[&quot;222&quot;] = &quot;2222&quot;
+	m[&quot;333&quot;] = &quot;3333&quot;
+	m[&quot;444&quot;] = &quot;4444&quot;
+	m[&quot;555&quot;] = &quot;5555&quot;
+
+	sorted_keys := make([]string, 0)
+	for k, _ := range m {
+		sorted_keys = append(sorted_keys, k)
+	}
+
+	// sort 'string' key in increasing order
+	sort.Strings(sorted_keys)
+
+	for _, k := range sorted_keys {
+		fmt.Printf(&quot;k=%v, v=%v\n&quot;, k, m[k])
+	}
+}
+</code></pre>
+<p>参考资料：<br>
+<a href="https://github.com/cch123/golang-notes/blob/master/map.md">曹大map分析</a><br>
+<a href="https://www.jianshu.com/p/aa0d4808cbb8">map源码分析</a></p>
+]]></content>
+    </entry>
+    <entry>
         <title type="html"><![CDATA[Go RPC对比和示例]]></title>
         <id>https://meetbetter.github.io/post/go-rpc-learning-1</id>
         <link href="https://meetbetter.github.io/post/go-rpc-learning-1">
         </link>
-        <updated>2018-12-15T08:14:22.000Z</updated>
+        <updated>2018-09-15T08:14:22.000Z</updated>
         <content type="html"><![CDATA[<h1 id="说明">说明</h1>
 <p>做项目中发现自己对很多东西的理解有偏差，所以决定做个总结，也分享给需要的朋友。如有错误和遗漏，欢迎沟通交流。</p>
 <p><a href="https://github.com/meetbetter/gRPC-Demo">GitHub示例源码</a></p>
@@ -1050,7 +1201,8 @@ func MergeSort(arr []int, left, right int) {
         <link href="https://meetbetter.github.io/post/about">
         </link>
         <updated>2018-01-25T11:09:48.000Z</updated>
-        <content type="html"><![CDATA[<p>小小gopher，欢迎交流！</p>
+        <content type="html"><![CDATA[<p>小小gopher，欢迎交流！<br>
+邮箱：CodeWithTxT@gmail.com</p>
 <p>To be Better</p>
 ]]></content>
     </entry>
