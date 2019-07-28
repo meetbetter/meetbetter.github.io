@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-28T06:41:09.119Z</updated>
+    <updated>2019-07-28T07:06:21.072Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -921,7 +921,7 @@ fmt.Println(&quot;main:&quot;,slice)
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[WSL(Windows Subsystem for Linux)的安装与使用]]></title>
+        <title type="html"><![CDATA[WSL(Windows Subsystem for Linux)安装与使用]]></title>
         <id>https://meetbetter.github.io/post/win10-wsl</id>
         <link href="https://meetbetter.github.io/post/win10-wsl">
         </link>
@@ -1421,6 +1421,7 @@ func MergeSort(arr []int, left, right int) {
 	return -1 //没有找到
 }
 </code></pre>
+<p><a href="https://github.com/meetbetter/learn-golang"><strong>Golang学习示例代码,欢迎star</strong></a></p>
 <p>文章中 gif 动图来源：<a href="https://www.cnblogs.com/onepixel/p/7674659.html">https://www.cnblogs.com/onepixel/p/7674659.html</a></p>
 ]]></content>
     </entry>
