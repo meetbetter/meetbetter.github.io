@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" >
 
-<title>Go map底层实现 | Betterman</title>
+<title>Golang map底层实现 | Betterman</title>
 <meta name="description" content="记录自己，期望可以帮到需要的人">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564215014996">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564296060855">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1564215014996" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1564296060855" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -102,7 +102,7 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">Go map底层实现</h2>
+            <h2 class="post-title">Golang map底层实现</h2>
             <div class="post-date">2018-09-30</div>
             
             <div class="post-content">
@@ -207,7 +207,7 @@ overflow bucket桶太多说明有很多cell空闲，查找效率就会变低。�
 <li>查找该key是否存在，已存在则更新，不存在则插入</li>
 </ol>
 <h1 id="map无序的原因">map无序的原因</h1>
-<p>看完上面的内容，可以理解“map高效率是因为map是链式结构存储”是错误的说法了吧，那为什么“map的无序是因为map是散列表”也是错误的呢？之前在网上看到说因为map是哈希的，所以遍历出来是无序的。我？？？其实<strong>Go map遍历出的结果是随机的是因为Go设计者故意这样做的</strong>。<br>
+<p>看完上面的内容，可以理解“map高效率是因为map是链式结构存储”是错误的说法了吧，那为什么“map的无序是因为map是散列表”也是错误的呢？之前在网上看到说因为map是哈希的，所以遍历出来是无序的。其实map无序和哈希无关，而是<strong>Go map遍历出的结果是随机的是因为Go设计者故意这样做的</strong>。<br>
 分析如下：<br>
 通过上面的学习已经知道，map的本质是散列表，而map的增长扩容会导致重新进行散列，这就可能使map的遍历结果在扩容前后变得不可靠，Go设计者为了让大家不依赖遍历的顺序，故意在实现map遍历时加入了随机数，让每次遍历的起点--即起始bucket的位置--不一样，即不让遍历都从bucket0开始，所以即使未扩容时我们遍历出来的map也总是无序的(<em><sup>_</sup></em>)。<br>
 看一下runtime.mapiterinit源码：</p>
@@ -265,6 +265,47 @@ func main() {
 	for _, k := range sorted_keys {
 		fmt.Printf(&quot;k=%v, v=%v\n&quot;, k, m[k])
 	}
+}
+</code></pre>
+<p>至此相信你对Golang map的底层实现有个大概认知了吧，最后再说一句，go中只有值传递，map和channel可以在函数内影响函数外是因为他们make创建时就是返回的对应指针：</p>
+<pre><code class="language-go">func makemap(t *maptype, hint int, h *hmap) *hmap {
+    // 在 64 位系统上 hmap 结构体大小为 48 字节
+    // 32 位系统上是 28 字节
+    if sz := unsafe.Sizeof(hmap{}); sz != 8+5*sys.PtrSize {
+        println(&quot;runtime: sizeof(hmap) =&quot;, sz, &quot;, t.hmap.size =&quot;, t.hmap.size)
+        throw(&quot;bad hmap size&quot;)
+    }
+
+    if hint &lt; 0 || hint &gt; int(maxSliceCap(t.bucket.size)) {
+        hint = 0
+    }
+
+    // 初始化 hmap
+    if h == nil {
+        h = (*hmap)(newobject(t.hmap))
+    }
+    h.hash0 = fastrand()
+
+    // 按照提供的元素个数，找一个可以放得下这么多元素的 B 值
+    B := uint8(0)
+    for overLoadFactor(hint, B) {
+        B++
+    }
+    h.B = B
+
+    // 分配初始的 hash table
+    // 如果 B == 0，buckets 字段会由 mapassign 来 lazily 分配
+    // 因为如果 hint 很大的话，对这部分内存归零会花比较长时间
+    if h.B != 0 {
+        var nextOverflow *bmap
+        h.buckets, nextOverflow = makeBucketArray(t, h.B)
+        if nextOverflow != nil {
+            h.extra = new(mapextra)
+            h.extra.nextOverflow = nextOverflow
+        }
+    }
+
+    return h
 }
 </code></pre>
 <p>参考资料：<br>

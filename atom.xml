@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-27T09:38:54.425Z</updated>
+    <updated>2019-07-28T06:41:09.119Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -189,7 +189,175 @@ func main() {
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Go map底层实现]]></title>
+        <title type="html"><![CDATA[理解Golang channel]]></title>
+        <id>https://meetbetter.github.io/post/go-channel</id>
+        <link href="https://meetbetter.github.io/post/go-channel">
+        </link>
+        <updated>2018-10-02T11:16:34.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="channel是什么">channel是什么</h1>
+<p>channel中文翻译成“管道”，很形象的体现出了channel的基本用途——传输数据的通道。<br>
+channel的作用可以分为两个：</p>
+<ol>
+<li>在goroutine之间传输数据</li>
+<li>同步，即goroutine调度<br>
+channel是Golang CSP(Communicating Sequential Processes)的核心，即gopher常说的“通过通信来共享内存，而不是通过共享内存而通信”。</li>
+</ol>
+<h1 id="channel的类型">channel的类型</h1>
+<p>channel按缓冲区可分为：</p>
+<ol>
+<li>无缓冲channel</li>
+</ol>
+<pre><code class="language-go">ch := make(chan int)
+</code></pre>
+<p>同步模式，channel的读写端必须同时在线，否则会阻塞。<br>
+2. 有缓冲channel</p>
+<pre><code class="language-go">ch := make(chan int, 100)
+</code></pre>
+<p>即异步模式，读写两端不必同时在线，在缓冲区满之前写端不会阻塞，在缓冲区数据被读完之前读端不会阻塞。</p>
+<p>按数据流向可分为：</p>
+<ol>
+<li>双向channel，可读可写</li>
+<li>只读channel</li>
+<li>只写channel</li>
+</ol>
+<pre><code class="language-go">chan T //可以接收发送类型为T的双向channel
+chan&lt;- T //只可以发送类型为T的只写channel
+&lt;-chan T //只可以接收类型为T的只读channel
+</code></pre>
+<h1 id="channel的特性">channel的特性</h1>
+<ul>
+<li>往nil channel写数据会一直阻塞；</li>
+<li>从nil channel读数据会一直阻塞；</li>
+<li>往已经close的channel写数据会导致panic</li>
+<li>从已经close的channel读数据会读到对应类型的零值</li>
+<li>close一个已经close过的channel会导致panic。</li>
+</ul>
+<h1 id="channel应用">channel应用</h1>
+<h2 id="同步">同步</h2>
+<pre><code class="language-go">
+package main
+
+/*
+	演示channel的同步作用
+*/
+
+import (
+	&quot;fmt&quot;
+	&quot;time&quot;
+)
+
+func send(done, quit chan bool) {
+	//等待recv完成后由send关闭
+	&lt;-done
+	fmt.Println(&quot;那我关闭了哦&quot;)
+
+	//通知main goroutine
+	quit &lt;- true
+}
+
+func recv(done chan bool) {
+	time.Sleep(time.Second)
+	// 通知任务已完成
+	fmt.Println(&quot;对面的send可以关闭了&quot;)
+	done &lt;- true
+}
+
+func main() {
+	done := make(chan bool)
+	quit := make(chan bool)
+	go send(done, quit)
+	go recv(done)
+	// 等待任务完成
+	&lt;-quit
+	fmt.Println(&quot;main也结束了哦&quot;)
+}
+
+</code></pre>
+<h2 id="select读取多个channel">select读取多个channel</h2>
+<p>select可以监听多个case上的IO流动，配合channel可以实现监听多个channel的数据：</p>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func fibonacci(data, quit chan int) {
+	x, y := 0, 1
+	for {
+		select {
+		case data &lt;- x:
+			x, y = y, x+y
+		case &lt;-quit:
+			fmt.Println(&quot;quit&quot;)
+			return
+		}
+	}
+}
+func main() {
+	data := make(chan int)
+	quit := make(chan int)
+	go func() {
+		for i := 0; i &lt; 20; i++ {
+			fmt.Println(&lt;-data)
+		}
+		quit &lt;- 0
+	}()
+	fibonacci(data, quit)
+}
+
+</code></pre>
+<h2 id="channel超时">channel超时</h2>
+<p>channel超时未收到数据则关闭：</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;time&quot;
+)
+
+func selectFunc(data &lt;-chan string, quit chan bool) {
+
+	for {
+
+		select {
+		case res := &lt;-data:
+			fmt.Println(res)
+		case &lt;-time.After(time.Second * 2): //其它case有数据时，select结束, time被重置
+			fmt.Println(&quot;timeout ,will quit&quot;)
+			&lt;-quit
+		}
+	}
+
+}
+func main() {
+	data := make(chan string, 1)
+	quit := make(chan bool)
+	go selectFunc(data, quit)
+
+	for i := 0; i &lt; 5; i++ {
+		time.Sleep(time.Second)
+		data &lt;- &quot;github.com/meetbetter&quot;
+	}
+
+	quit &lt;- true
+
+}
+</code></pre>
+<h2 id="channel的关闭">channel的关闭</h2>
+<p>当channel已经关闭之后，写端再往里写数据会导致panic，但是读端仍可以读，如果是无缓冲buffer，读端会读到对应类型的零值；如果是有缓冲buffer，写端关闭后读端仍可以读取数据，直到把数据读完才会读到零值。<br>
+因为往已经close的channel中写数据会panic，所以最好由写端关闭channel，读端判断channel是否已关闭。那如何判断对端已关闭呢？<br>
+可以使用返回值&quot;ok&quot;判断，如果写端已关闭channel，返回值&quot;ok&quot;会为false：</p>
+<pre><code class="language-go">  if data, ok := &lt;-ch1; ok {
+                fmt.Println(data)
+            }
+</code></pre>
+<p>也可以使用range遍历，当写端关闭channel时，range会跳出循环：</p>
+<pre><code class="language-go">  for data := range  ch1{
+            fmt.Println(data)
+        }
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Golang map底层实现]]></title>
         <id>https://meetbetter.github.io/post/go-map</id>
         <link href="https://meetbetter.github.io/post/go-map">
         </link>
@@ -295,7 +463,7 @@ overflow bucket桶太多说明有很多cell空闲，查找效率就会变低。�
 <li>查找该key是否存在，已存在则更新，不存在则插入</li>
 </ol>
 <h1 id="map无序的原因">map无序的原因</h1>
-<p>看完上面的内容，可以理解“map高效率是因为map是链式结构存储”是错误的说法了吧，那为什么“map的无序是因为map是散列表”也是错误的呢？之前在网上看到说因为map是哈希的，所以遍历出来是无序的。我？？？其实<strong>Go map遍历出的结果是随机的是因为Go设计者故意这样做的</strong>。<br>
+<p>看完上面的内容，可以理解“map高效率是因为map是链式结构存储”是错误的说法了吧，那为什么“map的无序是因为map是散列表”也是错误的呢？之前在网上看到说因为map是哈希的，所以遍历出来是无序的。其实map无序和哈希无关，而是<strong>Go map遍历出的结果是随机的是因为Go设计者故意这样做的</strong>。<br>
 分析如下：<br>
 通过上面的学习已经知道，map的本质是散列表，而map的增长扩容会导致重新进行散列，这就可能使map的遍历结果在扩容前后变得不可靠，Go设计者为了让大家不依赖遍历的顺序，故意在实现map遍历时加入了随机数，让每次遍历的起点--即起始bucket的位置--不一样，即不让遍历都从bucket0开始，所以即使未扩容时我们遍历出来的map也总是无序的(<em><sup>_</sup></em>)。<br>
 看一下runtime.mapiterinit源码：</p>
@@ -353,6 +521,47 @@ func main() {
 	for _, k := range sorted_keys {
 		fmt.Printf(&quot;k=%v, v=%v\n&quot;, k, m[k])
 	}
+}
+</code></pre>
+<p>至此相信你对Golang map的底层实现有个大概认知了吧，最后再说一句，go中只有值传递，map和channel可以在函数内影响函数外是因为他们make创建时就是返回的对应指针：</p>
+<pre><code class="language-go">func makemap(t *maptype, hint int, h *hmap) *hmap {
+    // 在 64 位系统上 hmap 结构体大小为 48 字节
+    // 32 位系统上是 28 字节
+    if sz := unsafe.Sizeof(hmap{}); sz != 8+5*sys.PtrSize {
+        println(&quot;runtime: sizeof(hmap) =&quot;, sz, &quot;, t.hmap.size =&quot;, t.hmap.size)
+        throw(&quot;bad hmap size&quot;)
+    }
+
+    if hint &lt; 0 || hint &gt; int(maxSliceCap(t.bucket.size)) {
+        hint = 0
+    }
+
+    // 初始化 hmap
+    if h == nil {
+        h = (*hmap)(newobject(t.hmap))
+    }
+    h.hash0 = fastrand()
+
+    // 按照提供的元素个数，找一个可以放得下这么多元素的 B 值
+    B := uint8(0)
+    for overLoadFactor(hint, B) {
+        B++
+    }
+    h.B = B
+
+    // 分配初始的 hash table
+    // 如果 B == 0，buckets 字段会由 mapassign 来 lazily 分配
+    // 因为如果 hint 很大的话，对这部分内存归零会花比较长时间
+    if h.B != 0 {
+        var nextOverflow *bmap
+        h.buckets, nextOverflow = makeBucketArray(t, h.B)
+        if nextOverflow != nil {
+            h.extra = new(mapextra)
+            h.extra.nextOverflow = nextOverflow
+        }
+    }
+
+    return h
 }
 </code></pre>
 <p>参考资料：<br>

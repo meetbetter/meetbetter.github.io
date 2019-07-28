@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" >
 
-<title>go channel底层实现 | Betterman</title>
+<title>理解Golang channel | Betterman</title>
 <meta name="description" content="记录自己，期望可以帮到需要的人">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564215014996">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564296060855">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1564215014996" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1564296060855" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -102,14 +102,190 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">go channel底层实现</h2>
-            <div class="post-date">2019-06-01</div>
+            <h2 class="post-title">理解Golang channel</h2>
+            <div class="post-date">2018-10-02</div>
             
             <div class="post-content">
-              <p>。</p>
+              <h1 id="channel是什么">channel是什么</h1>
+<p>channel中文翻译成“管道”，很形象的体现出了channel的基本用途——传输数据的通道。<br>
+channel的作用可以分为两个：</p>
+<ol>
+<li>在goroutine之间传输数据</li>
+<li>同步，即goroutine调度<br>
+channel是Golang CSP(Communicating Sequential Processes)的核心，即gopher常说的“通过通信来共享内存，而不是通过共享内存而通信”。</li>
+</ol>
+<h1 id="channel的类型">channel的类型</h1>
+<p>channel按缓冲区可分为：</p>
+<ol>
+<li>无缓冲channel</li>
+</ol>
+<pre><code class="language-go">ch := make(chan int)
+</code></pre>
+<p>同步模式，channel的读写端必须同时在线，否则会阻塞。<br>
+2. 有缓冲channel</p>
+<pre><code class="language-go">ch := make(chan int, 100)
+</code></pre>
+<p>即异步模式，读写两端不必同时在线，在缓冲区满之前写端不会阻塞，在缓冲区数据被读完之前读端不会阻塞。</p>
+<p>按数据流向可分为：</p>
+<ol>
+<li>双向channel，可读可写</li>
+<li>只读channel</li>
+<li>只写channel</li>
+</ol>
+<pre><code class="language-go">chan T //可以接收发送类型为T的双向channel
+chan&lt;- T //只可以发送类型为T的只写channel
+&lt;-chan T //只可以接收类型为T的只读channel
+</code></pre>
+<h1 id="channel的特性">channel的特性</h1>
+<ul>
+<li>往nil channel写数据会一直阻塞；</li>
+<li>从nil channel读数据会一直阻塞；</li>
+<li>往已经close的channel写数据会导致panic</li>
+<li>从已经close的channel读数据会读到对应类型的零值</li>
+<li>close一个已经close过的channel会导致panic。</li>
+</ul>
+<h1 id="channel应用">channel应用</h1>
+<h2 id="同步">同步</h2>
+<pre><code class="language-go">
+package main
+
+/*
+	演示channel的同步作用
+*/
+
+import (
+	&quot;fmt&quot;
+	&quot;time&quot;
+)
+
+func send(done, quit chan bool) {
+	//等待recv完成后由send关闭
+	&lt;-done
+	fmt.Println(&quot;那我关闭了哦&quot;)
+
+	//通知main goroutine
+	quit &lt;- true
+}
+
+func recv(done chan bool) {
+	time.Sleep(time.Second)
+	// 通知任务已完成
+	fmt.Println(&quot;对面的send可以关闭了&quot;)
+	done &lt;- true
+}
+
+func main() {
+	done := make(chan bool)
+	quit := make(chan bool)
+	go send(done, quit)
+	go recv(done)
+	// 等待任务完成
+	&lt;-quit
+	fmt.Println(&quot;main也结束了哦&quot;)
+}
+
+</code></pre>
+<h2 id="select读取多个channel">select读取多个channel</h2>
+<p>select可以监听多个case上的IO流动，配合channel可以实现监听多个channel的数据：</p>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func fibonacci(data, quit chan int) {
+	x, y := 0, 1
+	for {
+		select {
+		case data &lt;- x:
+			x, y = y, x+y
+		case &lt;-quit:
+			fmt.Println(&quot;quit&quot;)
+			return
+		}
+	}
+}
+func main() {
+	data := make(chan int)
+	quit := make(chan int)
+	go func() {
+		for i := 0; i &lt; 20; i++ {
+			fmt.Println(&lt;-data)
+		}
+		quit &lt;- 0
+	}()
+	fibonacci(data, quit)
+}
+
+</code></pre>
+<h2 id="channel超时">channel超时</h2>
+<p>channel超时未收到数据则关闭：</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;time&quot;
+)
+
+func selectFunc(data &lt;-chan string, quit chan bool) {
+
+	for {
+
+		select {
+		case res := &lt;-data:
+			fmt.Println(res)
+		case &lt;-time.After(time.Second * 2): //其它case有数据时，select结束, time被重置
+			fmt.Println(&quot;timeout ,will quit&quot;)
+			&lt;-quit
+		}
+	}
+
+}
+func main() {
+	data := make(chan string, 1)
+	quit := make(chan bool)
+	go selectFunc(data, quit)
+
+	for i := 0; i &lt; 5; i++ {
+		time.Sleep(time.Second)
+		data &lt;- &quot;github.com/meetbetter&quot;
+	}
+
+	quit &lt;- true
+
+}
+</code></pre>
+<h2 id="channel的关闭">channel的关闭</h2>
+<p>当channel已经关闭之后，写端再往里写数据会导致panic，但是读端仍可以读，如果是无缓冲buffer，读端会读到对应类型的零值；如果是有缓冲buffer，写端关闭后读端仍可以读取数据，直到把数据读完才会读到零值。<br>
+因为往已经close的channel中写数据会panic，所以最好由写端关闭channel，读端判断channel是否已关闭。那如何判断对端已关闭呢？<br>
+可以使用返回值&quot;ok&quot;判断，如果写端已关闭channel，返回值&quot;ok&quot;会为false：</p>
+<pre><code class="language-go">  if data, ok := &lt;-ch1; ok {
+                fmt.Println(data)
+            }
+</code></pre>
+<p>也可以使用range遍历，当写端关闭channel时，range会跳出循环：</p>
+<pre><code class="language-go">  for data := range  ch1{
+            fmt.Println(data)
+        }
+</code></pre>
 
             </div>
             
+              <div class="tag-container">
+                
+                  <a href="https://meetbetter.github.io/tag/CkXDaoDR0" class="tag">
+                    Golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://meetbetter.github.io/post/go-map">
+                  <h3 class="post-title">
+                    Golang map底层实现
+                  </h3>
+                </a>
+              </div>
             
 
             
