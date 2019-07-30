@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>k8s | Betterman</title>
+<meta name="description" content="记录自己，期望可以帮到需要的人">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564503207188">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://meetbetter.github.io">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1564503207188" class="site-logo">
+        <h1 class="site-title">Betterman</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/meetbetter" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      记录自己，期望可以帮到需要的人
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://meetbetter.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">k8s</h2>
+            <div class="post-date">2019-05-28</div>
+            
+            <div class="post-content">
+              <pre><code class="language-shell">[root@master ~]# rz
+rz waiting to receive.
+ zmodem trl+C ȡ
+
+  100%   39592 KB 4949 KB/s 00:00:08       0 Errorss
+  100%  203498 KB 3336 KB/s 00:01:01       0 Errorss
+  100%  156525 KB 3817 KB/s 00:00:41       0 Errorss
+  100%   82303 KB 6331 KB/s 00:00:13       0 Errorss
+  100%   80733 KB 4036 KB/s 00:00:20       0 Errorss
+  100%     736 KB  736 KB/s 00:00:01       0 Errors
+
+[root@master ~]# ls
+anaconda-ks.cfg    etcd-3.3.10.tar             kube-controller-manager-v1.15.0.tar  kube-scheduler-v1.15.0.tar
+coredns-1.3.1.tar  kube-apiserver-v1.15.0.tar  kube-proxy-v1.15.0.tar               pause-3.1.tar
+[root@master ~]# docker load &lt; etcd-3.3.10.tar
+8a788232037e: Loading layer [==================================================&gt;]   1.37MB/1.37MB
+30796113fb51: Loading layer [==================================================&gt;]    232MB/232MB
+6fbfb277289f: Loading layer [==================================================&gt;]  24.98MB/24.98MB
+Loaded image: registry.aliyuncs.com/google_containers/etcd:3.3.10
+[root@master ~]# docker load &lt; kube-controller-manager-v1.15.0.tar
+\^H^H
+
+
+fe9a8b4f1dcc: Loading layer [==================================================&gt;]  43.87MB/43.87MB
+50c95cd2e602: Loading layer [==================================================&gt;]  116.4MB/116.4MB
+Loaded image: registry.aliyuncs.com/google_containers/kube-controller-manager:v1.15.0
+[root@master ~]# 
+[root@master ~]# 
+[root@master ~]# 
+[root@master ~]# docker load &lt; kube-scheduler-v1.15.0.tar
+4c6646e96ecc: Loading layer [==================================================&gt;]  38.79MB/38.79MB
+Loaded image: registry.aliyuncs.com/google_containers/kube-scheduler:v1.15.0
+[root@master ~]# docker load &lt; coredns-1.3.1.tar
+fb61a074724d: Loading layer [==================================================&gt;]  479.7kB/479.7kB
+c6a5fc8a3f01: Loading layer [==================================================&gt;]  40.05MB/40.05MB
+Loaded image: registry.aliyuncs.com/google_containers/coredns:1.3.1
+[root@master ~]# docker load &lt; kube-apiserver-v1.15.0.tar
+55ea3e06e6da: Loading layer [==================================================&gt;]  164.5MB/164.5MB
+Loaded image: registry.aliyuncs.com/google_containers/kube-apiserver:v1.15.0
+[root@master ~]# docker load &lt; kube-proxy-v1.15.0.tar
+15c9248be8a9: Loading layer [==================================================&gt;]  3.403MB/3.403MB
+2f35b77d8045: Loading layer [==================================================&gt;]  36.99MB/36.99MB
+Loaded image: registry.aliyuncs.com/google_containers/kube-proxy:v1.15.0
+[root@master ~]# docker load &lt; pause-3.1.tar
+e17133b79956: Loading layer [==================================================&gt;]  744.4kB/744.4kB
+Loaded image: registry.aliyuncs.com/google_containers/pause:3.1
+</code></pre>
+<pre><code class="language-go">To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You should now deploy a pod network to the cluster.
+Run &quot;kubectl apply -f [podnetwork].yaml&quot; with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 192.168.8.14:6443 --token j1f9ta.7k0h8lr38kp2k8p2 \
+    --discovery-token-ca-cert-hash sha256:1dff776372e60fbdecbbfb2e5aaefaa11894f35363051a8db2344e9a2753282b
+
+</code></pre>
+<p>systemctl enable kubelet</p>
+<p>先开启node再开启master，防止node资源未准备好就让master运行；并且如果先启动了master，这时有一个node加入，master会认为集群只有一个node一股脑地将所有服务加入该node，很可能导致集群崩溃。</p>
+<p>某个结点node2要从集群删除时，要先将master中的node2信息删除（否则后续不能加入），再将node2的资源拷贝到其他node，再删除node.</p>
+<p>kubectl create -f XXX.yaml</p>
+<p>kubectl delete pod kube-proxy-4zl5v -n kube-system</p>
+
+            </div>
+            
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '7c65ded90d138e1d98b6',
+        clientSecret: '82107256fb2d1c871aa25c57faf4a523d8da5a54',
+        repo: 'meetbetter.github.io',
+        owner: 'meetbetter',
+        admin: ['meetbetter'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+  </body>
+</html>
