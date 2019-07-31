@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-31T12:49:32.804Z</updated>
+    <updated>2019-07-31T13:29:40.079Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -69,12 +69,12 @@ IP填写<a href="https://help.github.com/en/articles/setting-up-an-apex-domain#c
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Golang调度器介绍和跟踪]]></title>
+        <title type="html"><![CDATA[Golang调度器介绍和跟踪方法]]></title>
         <id>https://meetbetter.github.io/post/golang-scheduler</id>
         <link href="https://meetbetter.github.io/post/golang-scheduler">
         </link>
         <updated>2019-04-14T07:31:17.000Z</updated>
-        <content type="html"><![CDATA[<p>本文记录了我在学习Golang调度器时的一些理解和总结，分享出来，欢迎交流指正。<br>
+        <content type="html"><![CDATA[<p>本文记录了本人对Golang调度器的理解和奇怪的goroutine执行顺序，以及跟踪调度器的方法，分享出来一起学习，欢迎交流指正。<br>
 <img src="https://i.loli.net/2019/07/31/5d41387a2d73492186.jpg" alt=""></p>
 <h1 id="什么是调度器">什么是调度器</h1>
 <p>为了方便刚接触操作系统和高级语言的同学，先用大白话介绍下什么是调度器。<br>

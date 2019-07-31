@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" >
 
-<title>Golang调度器介绍和跟踪 | Betterman</title>
+<title>Golang调度器介绍和跟踪方法 | Betterman</title>
 <meta name="description" content="记录自己，期望可以帮到需要的人">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564576663632">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564579769715">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1564576663632" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1564579769715" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -102,11 +102,11 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">Golang调度器介绍和跟踪</h2>
+            <h2 class="post-title">Golang调度器介绍和跟踪方法</h2>
             <div class="post-date">2019-04-14</div>
             
             <div class="post-content">
-              <p>本文记录了我在学习Golang调度器时的一些理解和总结，分享出来，欢迎交流指正。<br>
+              <p>本文记录了本人对Golang调度器的理解和奇怪的goroutine执行顺序，以及跟踪调度器的方法，分享出来一起学习，欢迎交流指正。<br>
 <img src="https://i.loli.net/2019/07/31/5d41387a2d73492186.jpg" alt=""></p>
 <h1 id="什么是调度器">什么是调度器</h1>
 <p>为了方便刚接触操作系统和高级语言的同学，先用大白话介绍下什么是调度器。<br>
