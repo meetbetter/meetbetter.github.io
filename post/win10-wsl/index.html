@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564557701858">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564576663632">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1564557701858" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1564576663632" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -106,8 +106,9 @@
             <div class="post-date">2018-02-27</div>
             
             <div class="post-content">
-              <p>官方介绍：WSL(Windows Subsystem for Linux)是适用于Linux 的 Windows 子系统，是一个为在Windows 10和Windows Server 2019上能够原生运行Linux二进制可执行文件的兼容层。<br>
-直白的讲，就是<strong>借助WSL可以在Windows10中直接编译出Linux环境的可执行文件，让Windows下的开发有机会摆脱庞大的虚拟机</strong>，有点mac下开发的感觉，特别适合我这种没有mac的贫困码农。</p>
+              <p>本文详细介绍了Windows10子系统Linux(WSL)的安装和配合Goland、vscode的使用方法，个人感觉WSL使得后台开发变得很方便，特此分享出来。<br>
+官方介绍：WSL(Windows Subsystem for Linux)是适用于Linux 的 Windows 子系统，是一个为在Windows 10和Windows Server 2019上能够原生运行Linux二进制可执行文件的兼容层。</p>
+<p>直白的讲，就是<strong>借助WSL可以在Windows10中直接编译出Linux环境的可执行文件，让Windows下的开发有机会摆脱庞大的虚拟机</strong>，有点mac下开发的感觉，特别适合我这种没有mac的贫困码农。</p>
 <h1 id="打开子系统功能">打开子系统功能</h1>
 <p>在win10 power shell输入如下指令：</p>
 <pre><code class="language-shell">Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
