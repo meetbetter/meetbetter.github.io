@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-30T16:13:48.563Z</updated>
+    <updated>2019-07-31T07:07:43.870Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -66,6 +66,164 @@ IP填写<a href="https://help.github.com/en/articles/setting-up-an-apex-domain#c
 <img src="https://meetbetter.github.io/post-images/1563181533762.png" alt=""></li>
 </ol>
 <p>现在你就可以在专属域名上浏览自己博客了，更加努力的分享自己写bug的经验吧。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Golang调度器介绍和跟踪]]></title>
+        <id>https://meetbetter.github.io/post/golang-scheduler</id>
+        <link href="https://meetbetter.github.io/post/golang-scheduler">
+        </link>
+        <updated>2019-04-14T07:31:17.000Z</updated>
+        <content type="html"><![CDATA[<p>本文记录了我在学习Golang调度器时的一些理解和总结，分享出来，欢迎交流指正。<br>
+<img src="https://i.loli.net/2019/07/31/5d41387a2d73492186.jpg" alt=""></p>
+<h1 id="什么是调度器">什么是调度器</h1>
+<p>为了方便刚接触操作系统和高级语言的同学，先用大白话介绍下什么是调度器。<br>
+调度，是将多个程序合理的安排到有限的CPU上来使得每个程序都能够得以执行，实现宏观的并发执行。比如我们的电脑CPU只有四核甚至双核，可是我们却可以在电脑上同时运行几十个程序，这就是操作系统调度器的功劳。但操作系统调度的是进程和线程，线程简单地说就是轻量级的进程，但是每个线程仍需要MB级别的内存，而且如果两个切换的线程在不同的进程中，还需要进程切换，会使CPU在调度这件事上花费大量时间。<br>
+为了更合理的利用CPU，Golang通过goroutine原生支持高并发，goroutine是由go调度器在语言层面进行调度，将goroutine安排到线程上，可以更充分地利用CPU。</p>
+<h1 id="golang的调度器">Golang的调度器</h1>
+<p>Golang的调度器在runtime中实现，我们每个运行的程序执行前都会运行一个runtime负责调度goroutine，我们写的代码入口要在main包下的main函数中也是因为runtime.main函数会调用main.main。Golang的调度器在2012被重写过一次，现在使用的是新版的G-P-M调度器，但是我们还是先来看下老的G-M调度器，这样才可以更好的体会当前调度器的强大之处。</p>
+<h2 id="g-m模型">G-M模型：</h2>
+<p>下面是旧调度器的G-P模型：<br>
+<img src="https://i.loli.net/2019/07/31/5d4108f2aef5b43754.png" alt=""><br>
+M：代表线程，goroutine都是由线程来执行的；<br>
+Global G Queue：全局goroutine队列，其中G就代表goroutine，所有M都从这个队列中取出goroutine来执行。<br>
+这种模型比较简单，但是问题也很明显：</p>
+<ol>
+<li>多个M访问一个公共的全局G队列，每次都需要加互斥锁保护，造成激烈的锁竞争和阻塞；</li>
+<li>局部性很差，即如果M1上的G1创建了G2，需要将G2交给M2执行，但G1和G2是相关的，最好放在同一个M上执行。</li>
+<li>M中需要mcache保存G的状态，消耗大量内存和较差的局部性。</li>
+<li>系统调用syscall会阻塞线程，浪费不能合理的利用CPU。</li>
+</ol>
+<h2 id="g-p-m模型">G-P-M模型</h2>
+<p>后来Go语言开发者改善了调度器为G-P-M模型，如下图：<br>
+<img src="https://i.loli.net/2019/07/31/5d4110155291e41796.png" alt=""><br>
+其中G还是代表goroutine，M代表线程，全局队列依然存在；而新增加的P代表逻辑processor，现在G的眼中只有P，在G的眼里P就是它的CPU。并且给每个P新增加了局部队列来保存本P要处理的goroutine。<br>
+这个模型的调度方法如下;</p>
+<ol>
+<li>每个P有个局部队列，局部队列保存待执行的goroutine</li>
+<li>每个P和一个M绑定，M是真正的执行P中goroutine的实体</li>
+<li>正常情况下，M从绑定的P中的局部队列获取G来执行</li>
+<li>当M绑定的P的的局部队列已经满了之后就会把goroutine放到全局队列</li>
+<li>M是复用的，不需要反复销毁和创建，拥有work stealing和hand off策略保证线程的高效利用。</li>
+<li>当M绑定的P的局部队列为空时，M会从其他P的局部队列中偷取G来执行，即work stealing；当其他P偷取不到G时，M会从全局队列获取到本地队列来执行G。</li>
+<li>当G因系统调用(syscall)阻塞时会阻塞M，此时P会和M解绑即hand off，并寻找新的idle的M，若没有idle的M就会新建一个M。</li>
+<li>当G因channel或者network I/O阻塞时，不会阻塞M，M会寻找其他runnable的G；当阻塞的G恢复后会重新进入runnable进入P队列等待执行</li>
+<li>mcache位于P，所以G可以跨M调度，不再存在跨M调度局部性差的问题</li>
+<li>G是抢占调度。不像操作系统按时间片调度线程那样，Go调度器没有时间片概念，G因阻塞和被抢占而暂停，并且G只能在函数调用时有可能被抢占，极端情况下如果G一直做死循环就会霸占一个P和M，Go调度器也无能为力。</li>
+</ol>
+<h1 id="调度器状态的查看方法">调度器状态的查看方法</h1>
+<p>GODEBUG这个Go运行时环境变量很是强大，通过给其传入不同的key1=value1,key2=value2… 组合，Go的runtime会输出不同的调试信息，比如在这里我们给GODEBUG传入了”schedtrace=1000″，其含义就是每1000ms，打印输出一次goroutine scheduler的状态。<br>
+下面演示使用Golang强大的GODEBUG环境变量可以查看当前程序中Go调度器的状态：</p>
+<blockquote>
+<p>环境为Windows10的Linux子系统(WSL)，<strong><a href="https://github.com/meetbetter/learn-golang/">WSL搭建和使用的代码在本人GitHub有整理</a></strong>，代码在文末参考的鸟窝的文章中也可以找到</p>
+</blockquote>
+<pre><code class="language-go">func main() {
+   var wg sync.WaitGroup
+   wg.Add(10)
+   for i := 0; i &lt; 10; i++ {
+   	go work(&amp;wg)
+   }
+   wg.Wait()
+   // Wait to see the global run queue deplete.
+   time.Sleep(3 * time.Second)
+}
+func work(wg *sync.WaitGroup) {
+
+   time.Sleep(time.Second)
+   var counter int
+   for i := 0; i &lt; 1e10; i++ {
+   	counter++
+   }
+   wg.Done()
+}
+</code></pre>
+<p>编译指令：</p>
+<pre><code class="language-shell">go build 01_GODEBUG-schedtrace.go
+GODEBUG=schedtrace=1000 ./01_GODEBUG-schedtrace
+</code></pre>
+<p>结果：</p>
+<pre><code class="language-shell">SCHED 0ms: gomaxprocs=4 idleprocs=1 threads=5 spinningthreads=1 idlethreads=0 runqueue=0 [4 0 4 0]
+SCHED 1000ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 0 0 0]
+SCHED 2007ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 0 0 6]
+SCHED 3025ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 0 0 6]
+SCHED 4033ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 0 0 6]
+SCHED 5048ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 0 0 6]
+SCHED 6079ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 0 0 6]
+SCHED 7081ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 0 0 6]
+SCHED 8092ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 0 0 6]
+SCHED 9113ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 1 0 1]
+SCHED 10129ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 1 0 1]
+SCHED 11134ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 1 0 1]
+SCHED 12157ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 1 0 1]
+SCHED 13170ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 1 0 1]
+SCHED 14183ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 1 0 1]
+SCHED 15187ms: gomaxprocs=4 idleprocs=0 threads=8 spinningthreads=0 idlethreads=3 runqueue=0 [0 1 0 1]
+SCHED 16187ms: gomaxprocs=4 idleprocs=2 threads=8 spinningthreads=0 idlethreads=5 runqueue=0 [0 0 0 0]
+SCHED 17190ms: gomaxprocs=4 idleprocs=2 threads=8 spinningthreads=0 idlethreads=5 runqueue=0 [0 0 0 0]
+SCHED 18193ms: gomaxprocs=4 idleprocs=2 threads=8 spinningthreads=0 idlethreads=5 runqueue=0 [0 0 0 0]
+SCHED 19196ms: gomaxprocs=4 idleprocs=2 threads=8 spinningthreads=0 idlethreads=5 runqueue=0 [0 0 0 0]
+SCHED 20200ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=6 runqueue=0 [0 0 0 0]
+SCHED 21210ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=6 runqueue=0 [0 0 0 0]
+SCHED 22219ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=6 runqueue=0 [0 0 0 0]
+</code></pre>
+<p>看到怎么多输出不要慌， 了解每个字段的含义就很清晰了：</p>
+<ul>
+<li>SCHED 1000ms<br>
+自程序运行开始经历的时间</li>
+<li>gomaxprocs=4<br>
+当前程序使用的逻辑processor，即P，小于等于CPU的核数。</li>
+<li>idleprocs=4<br>
+空闲的线程数</li>
+<li>threads=8<br>
+当前程序的总线程数M，包括在执行G的和空闲的</li>
+<li>spinningthreads=0<br>
+处于<strong>自旋</strong>状态的线程，即M在绑定的P的局部队列和全局队列都没有G，M没有销毁而是在四处寻觅有没有可以steal的G，这样可以减少线程的大量创建。</li>
+<li>idlethreads=3<br>
+处于idle空闲状态的线程</li>
+<li>runqueue=0<br>
+全局队列中G的数目</li>
+<li>[0 0 0 6]<br>
+本地队列中的每个P的局部队列中G的数目，我的电脑是四核所有有四个P。</li>
+</ul>
+<p>上面的输出信息已经足够我们了解我们的程序运行状况，要想看每个goroutine、m和p的详细调度信息，可以在GODEBUG时加入，<code>scheddetail</code>：</p>
+<pre><code class="language-shell">GODEBUG=schedtrace=1000,scheddetail=1 ./01_GODEBUG-schedtrace
+</code></pre>
+<p>结果如下：</p>
+<pre><code class="language-shell">SCHED 0ms: gomaxprocs=4 idleprocs=4 threads=7 spinningthreads=0 idlethreads=2 runqueue=0 gcwaiting=0 nmidlelocked=0 stopwait=0 sysmonwait=0
+ P0: status=0 schedtick=7 syscalltick=1 m=-1 runqsize=0 gfreecnt=0
+ P1: status=0 schedtick=2 syscalltick=1 m=-1 runqsize=0 gfreecnt=0
+ P2: status=0 schedtick=1 syscalltick=1 m=-1 runqsize=0 gfreecnt=0
+ P3: status=0 schedtick=1 syscalltick=1 m=-1 runqsize=0 gfreecnt=0
+ M6: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 spinning=false blocked=true lockedg=-1
+ M5: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 spinning=false blocked=true lockedg=-1
+ M4: p=-1 curg=33 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 spinning=false blocked=true lockedg=-1
+ M3: p=-1 curg=49 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 spinning=false blocked=true lockedg=-1
+ M2: p=-1 curg=17 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 spinning=false blocked=true lockedg=-1
+ M1: p=-1 curg=-1 mallocing=0 throwing=0 preemptoff= locks=1 dying=0 spinning=false blocked=false lockedg=-1
+ M0: p=-1 curg=14 mallocing=0 throwing=0 preemptoff= locks=0 dying=0 spinning=false blocked=true lockedg=-1
+ G1: status=4(semacquire) m=-1 lockedm=-1
+ G2: status=4(force gc (idle)) m=-1 lockedm=-1
+ G3: status=4(GC sweep wait) m=-1 lockedm=-1
+ G4: status=4(sleep) m=-1 lockedm=-1
+ G5: status=4(sleep) m=-1 lockedm=-1
+ G6: status=4(sleep) m=-1 lockedm=-1
+ G7: status=4(sleep) m=-1 lockedm=-1
+ G8: status=4(sleep) m=-1 lockedm=-1
+ G9: status=4(sleep) m=-1 lockedm=-1
+ G10: status=4(sleep) m=-1 lockedm=-1
+ G11: status=4(sleep) m=-1 lockedm=-1
+ G12: status=4(sleep) m=-1 lockedm=-1
+ G13: status=4(sleep) m=-1 lockedm=-1
+ G14: status=3() m=0 lockedm=-1
+ G33: status=3() m=4 lockedm=-1
+ G17: status=3() m=2 lockedm=-1
+ G49: status=3() m=3 lockedm=-1
+</code></pre>
+<p>参考资料：<br>
+<a href="https://mp.weixin.qq.com/s?__biz=Mzg3MTA0NDQ1OQ==&amp;mid=2247483869&amp;idx=1&amp;sn=bf6f038dbe6c7bde5954fc37c0e449b5&amp;scene=21#wechat_redirect">大彬Go调度器系列</a><br>
+<a href="https://tonybai.com/2017/06/23/an-intro-about-goroutine-scheduler/">也谈goroutine调度器</a><br>
+<a href="https://colobu.com/2016/04/19/Scheduler-Tracing-In-Go/">鸟窝 Go调度器跟踪</a><br>
+<a href="https://zhuanlan.zhihu.com/p/27056944">Go调度器详解</a></p>
 ]]></content>
     </entry>
     <entry>
@@ -1502,17 +1660,6 @@ func MergeSort(arr []int, left, right int) {
 </code></pre>
 <p><a href="https://github.com/meetbetter/learn-golang"><strong>Golang学习示例代码,欢迎star</strong></a></p>
 <p>文章中 gif 动图来源：<a href="https://www.cnblogs.com/onepixel/p/7674659.html">https://www.cnblogs.com/onepixel/p/7674659.html</a></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[关于]]></title>
-        <id>https://meetbetter.github.io/post/about</id>
-        <link href="https://meetbetter.github.io/post/about">
-        </link>
-        <updated>2018-01-25T11:09:48.000Z</updated>
-        <content type="html"><![CDATA[<p>小小gopher，欢迎交流！<br>
-邮箱：CodeWithTxT@gmail.com</p>
-<p>To be Better</p>
 ]]></content>
     </entry>
 </feed>
