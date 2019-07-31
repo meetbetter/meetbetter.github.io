@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" >
 
-<title>Golang并发编程 | Betterman</title>
+<title>Golang并发控制之道 | Betterman</title>
 <meta name="description" content="记录自己，期望可以帮到需要的人">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564579769715">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564580622347">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1564579769715" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1564580622347" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -102,12 +102,14 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">Golang并发编程</h2>
+            <h2 class="post-title">Golang并发控制之道</h2>
             <div class="post-date">2019-02-16</div>
             
             <div class="post-content">
               <p><a href="https://www.flysnow.org/2017/05/12/go-in-action-go-context.html">飞雪无情</a><br>
 <a href="https://www.kancloud.cn/liupengjie/go/577494">参考总结</a></p>
+<p>大家经常说“Go语言是为了并发而生”、“Go语言是高并发时代的C语言”，这时因为Go通过goroutine（go中的协程）实现语言层面支持并发，每个goroutine默认只需要8KB的堆栈空间，所以我们可以轻松开启上万个goroutine，那么这么多</p>
+<h1 id="并发概念">并发概念</h1>
 <h1 id="channel">channel</h1>
 <h1 id="waitgroup">waitgroup</h1>
 <h1 id="context">context</h1>
