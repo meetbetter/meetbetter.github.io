@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-07-31T13:43:47.568Z</updated>
+    <updated>2019-08-03T14:14:47.849Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -467,13 +467,171 @@ Go 语⾔如果发现扫描后回收的速度跟不上分配的速度它依然�
 ]]></content>
     </entry>
     <entry>
+        <title type="html"><![CDATA[Go interface和nil踩坑]]></title>
+        <id>https://meetbetter.github.io/post/go-interface-nil</id>
+        <link href="https://meetbetter.github.io/post/go-interface-nil">
+        </link>
+        <updated>2018-11-03T12:53:59.000Z</updated>
+        <content type="html"><![CDATA[<p>最近在项目中踩了一个深坑——“Golang中一个包含nil指针的接口不是nil接口”，如果你不是很理解这句话那推荐认真看下下面的分析，避免以后写代码时踩坑。</p>
+<h1 id="示例一">示例一</h1>
+<p>先一起来看下这段代码，你感觉有没有问题呢？</p>
+<pre><code class="language-go">type IPeople interface {
+	hello()
+}
+type People struct {
+}
+
+func (p *People) hello() {
+	fmt.Println(&quot;github.com/meetbetter&quot;)
+}
+
+func errFunc1(in int) *People {
+	if in == 0 {
+		fmt.Println(&quot;importantFunc返回了一个nil&quot;)
+		return nil
+	} else {
+		fmt.Println(&quot;importantFunc返回了一个非nil值&quot;)
+		return &amp;People{}
+	}
+
+}
+
+func main() {
+	var i IPeople
+
+	in := 0
+
+	i = errFunc1(in)
+
+	if i == nil {
+
+		fmt.Println(&quot;哈，外部接收到也是nil&quot;)
+	} else {
+
+		fmt.Println(&quot;咦，外部接收到不是nil哦&quot;)
+		fmt.Printf(&quot;%v, %T\n&quot;, i, i)
+	}
+
+}
+</code></pre>
+<p>这段代码的执行结果是:</p>
+<pre><code class="language-shell">importantFunc返回了一个nil
+咦，外部接收到不是nil哦
+&lt;nil&gt;, *main.People
+</code></pre>
+<p>可以看到在main函数中收到的返回值不是nil， 明明在errFunc1()函数中返回的是nil，到了main函数为什么收到的不是nil呢？<br>
+这是因为：将nil赋值给<code>*People</code>后再将<code>*People</code>赋值给interface，<code>*People</code>本身是是个指向nil的指针，但是将其赋给接口时只是接口中的值为nil，但是接口中的类型信息为<code>*main.People</code>而不是nil，所以这个接口不是nil。<br>
+是的，Golang中的interface类型包含两部分信息——值信息和类型信息，只有interface的值合并类型都为nil时interface才为nil，interface底层实现可以在后面的源码分析看到。</p>
+<p>先来看看正确的处理接口返回值的方法，是直接将nil赋给interface：</p>
+<pre><code class="language-go">
+func rightFunc(in int) IPeople {
+	if in == 0 {
+		fmt.Println(&quot;importantFunc返回了一个nil&quot;)
+		return nil
+	} else {
+		fmt.Println(&quot;importantFunc返回了一个非nil值&quot;)
+		return &amp;People{}
+	}
+
+}
+</code></pre>
+<h1 id="示例二">示例二</h1>
+<p>下面的代码更清晰的证明了<code>一个包含nil指针的接口不是nil接口</code>的结论：</p>
+<pre><code class="language-go">type IPeople interface {
+	hello()
+}
+type People struct {
+}
+
+func (p *People) hello() {
+	fmt.Println(&quot;github.com/meetbetter&quot;)
+}
+
+//错误：将nil的people给空接口后接口就不为nil,因为interface中的value为nil但type不为nil
+func errFunc() *People {
+	var p *People
+
+	return p
+}
+
+//正确处理返回nil给接口的方式：直接将nil赋给interface
+func rightFunc() IPeople {
+	var p *People
+
+	return p
+}
+func main() {
+
+	if errFunc() == nil {
+
+		fmt.Println(&quot;对了哦，外部接收到也是nil&quot;)
+	} else {
+
+		fmt.Println(&quot;错了咦，外部接收到不是nil哦&quot;)
+
+	}
+
+	if rightFunc() == nil {
+
+		fmt.Println(&quot;对了哦，外部接收到也是nil&quot;)
+	} else {
+
+		fmt.Println(&quot;错了咦，外部接收到不是nil哦&quot;)
+
+	}
+
+}
+</code></pre>
+<p>输出结果：</p>
+<pre><code class="language-shell">对了哦，外部接收到也是nil
+错了咦，外部接收到不是nil哦
+</code></pre>
+<h1 id="interface底层实现">interface底层实现</h1>
+<p>下面的注释信息来自参考文章中，从interface底层实现可以看出iface比eface 中间多了一层itab结构， itab 存储_type信息和[]fun方法集，所以即使data指向了nil 并不代表interface 就是nil， 还要考虑_type信息。</p>
+<pre><code class="language-go">type eface struct {      //空接口
+    _type *_type         //类型信息
+    data  unsafe.Pointer //指向数据的指针(go语言中特殊的指针类型unsafe.Pointer类似于c语言中的void*)
+}
+type iface struct {      //带有方法的接口
+    tab  *itab           //存储type信息还有结构实现方法的集合
+    data unsafe.Pointer  //指向数据的指针(go语言中特殊的指针类型unsafe.Pointer类似于c语言中的void*)
+}
+type _type struct {
+    size       uintptr  //类型大小
+    ptrdata    uintptr  //前缀持有所有指针的内存大小
+    hash       uint32   //数据hash值
+    tflag      tflag
+    align      uint8    //对齐
+    fieldalign uint8    //嵌入结构体时的对齐
+    kind       uint8    //kind 有些枚举值kind等于0是无效的
+    alg        *typeAlg //函数指针数组，类型实现的所有方法
+    gcdata    *byte
+    str       nameOff
+    ptrToThis typeOff
+}
+type itab struct {
+    inter  *interfacetype  //接口类型
+    _type  *_type          //结构类型
+    link   *itab
+    bad    int32
+    inhash int32
+    fun    [1]uintptr      //可变大小 方法集合
+}
+</code></pre>
+<p>以上完整代码均整理在<a href="https://github.com/meetbetter/learn-golang/tree/master/02_advance/11_nil-interface">Github-跟着示例代码学Golang项目</a>。</p>
+<p>参考文章：<br>
+<a href="https://studygolang.com/articles/10635">Golang第一大坑</a><br>
+<a href="https://gocn.vip/question/1011">&quot;一个包含nil指针的接口不是nil接口&quot;的讨论</a></p>
+]]></content>
+    </entry>
+    <entry>
         <title type="html"><![CDATA[理解Golang channel]]></title>
         <id>https://meetbetter.github.io/post/go-channel</id>
         <link href="https://meetbetter.github.io/post/go-channel">
         </link>
         <updated>2018-10-02T11:16:34.000Z</updated>
         <content type="html"><![CDATA[<h1 id="channel是什么">channel是什么</h1>
-<p>channel中文翻译成“管道”，很形象的体现出了channel的基本用途——传输数据的通道。<br>
+<p>channel中文翻译成“管道”，很形象地体现出了channel的基本用途——传输数据的通道。<br>
 channel的作用可以分为两个：</p>
 <ol>
 <li>在goroutine之间传输数据</li>
@@ -1291,417 +1449,6 @@ sudo apt-get upgrade //根据软件源的信息更新软件
 <p>为了防止和Linux内编写的文件换行符有冲突，推荐修改换行符为Linux样式，如下：<br>
 <img src="https://meetbetter.github.io/post-images/1564123732107.jpg" alt=""></p>
 <p>至此，Windows10的Linux子系统的开发环境已经基本搭建完成，后续根据你的需要在WSL安装对应工具即可，如果觉得WSL的命令行太难用，可以使用Goland的terminal，或者使用Secure CRT等SSH工具。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Golang实现常见排序算法]]></title>
-        <id>https://meetbetter.github.io/post/golang-sort</id>
-        <link href="https://meetbetter.github.io/post/golang-sort">
-        </link>
-        <updated>2018-02-02T03:34:13.000Z</updated>
-        <content type="html"><![CDATA[<h2 id="冒泡排序">冒泡排序</h2>
-<ul>
-<li>BubbleSort()</li>
-</ul>
-<p><img src="https://meetbetter.github.io/post-images/1564109707539.gif" alt=""></p>
-<p>算法：</p>
-<ol>
-<li>外层控制行  len(arr)-1</li>
-<li>内层控制列  len(arr)-1-i</li>
-<li>相邻数据比大小</li>
-<li>满足条件进行交换</li>
-</ol>
-<pre><code class="language-go">func BubbleSort1(arr []int) {
-	count := 0
-	for i := 0; i &lt; len(arr)-1; i++ {
-		for j := 0; j &lt; len(arr)-1-i; j++ {
-			count++
-			if arr[j+1] &lt; arr[j] {
-				arr[j], arr[j+1] = arr[j+1], arr[j]
-			}
-		}
-	}
-	fmt.Println(&quot;count&quot;, count)
-}
-</code></pre>
-<p>优化冒泡排序：</p>
-<pre><code class="language-go">// 冒泡排序优化
-func BubbleSort2(arr []int) {
-	count := 0
-	flg := false
-	for i := 0; i &lt; len(arr)-1; i++ {
-		for j := 0; j &lt; len(arr)-1-i; j++ {
-			count++
-			if arr[j] &gt; arr[j+1] {
-				arr[j+1], arr[j] = arr[j], arr[j+1]
-				flg = true
-			}
-		}
-		if !flg {
-			fmt.Println(&quot;count&quot;, count)
-			return
-		} else {
-			flg = false
-		}
-	}
-}
-</code></pre>
-<h2 id="选择排序">选择排序</h2>
-<ul>
-<li>SelectSort()</li>
-</ul>
-<p><img src="https://meetbetter.github.io/post-images/1564111179794.gif" alt=""></p>
-<ol>
-<li>外层控制行</li>
-<li>内层控制列</li>
-<li>将第一个元素当做最大数</li>
-<li>使用该数，一次向后比较，找真正的最大数， 记录下标index。</li>
-<li>当一行比较结束。将index对应值，写到最后一个位置。</li>
-<li>重复3-5，直到所有数据排序完成。</li>
-</ol>
-<pre><code class="language-go">func SelectSort(data []int) {
-	for i := 0; i &lt; len(data)-1; i++ {
-		index := 0
-		for j := 1; j &lt; len(data)-i; j++ {
-			if data[j] &gt; data[index] {
-				index = j
-			}
-		}
-		//将最大值放在每行的末尾
-		data[len(data)-1-i], data[index] = data[index], data[len(data)-1-i]
-	}
-}
-</code></pre>
-<h2 id="插入排序">插入排序</h2>
-<ul>
-<li>InsertSort()</li>
-</ul>
-<p><img src="https://meetbetter.github.io/post-images/1564111366208.gif" alt=""></p>
-<p>算法：</p>
-<ol>
-<li>将待排序列分成 “有序数据组”（第一个元素）、“无序数据组”</li>
-<li>取无序数据组 第一个元素，与有序数据组的 最后一个元素比较。</li>
-<li>如果 小于 ，将无序数据组的数据，插入到有序数据组中。</li>
-<li>依次判断有序数据组以前的数据，是否大于新插的数据</li>
-<li>重复上述 2- 4步。</li>
-</ol>
-<pre><code class="language-go">//插入排序法--使用向后挪移的方式操作有序数据
-func InsertSort(arr []int) {
-	//1 将arr分为有序数组和无序数组两部分
-	for i := 1; i &lt; len(arr); i++ { //arr[0]作第一个有序组
-		//2 只有当无序数组的第一个数据arr[i]小于有序数组的最后一个数据arr[i-1]时,
-		// 需要将该数据添加到有序数组
-		if arr[i] &lt; arr[i-1] {
-			//3 循环判断要插入的数据应该插在有序数组的哪个位置
-			tmp := arr[i] //备份要插入的数据,避免数据后移时被覆盖
-			j := i - 1
-
-			for j &gt;= 0 &amp;&amp; arr[j] &gt; tmp { //循环和有序数组比较,确定插入位置
-				arr[j+1] = arr[j] //有序数组中比要插入的数据大的一次向后挪移
-				j--
-			}
-			arr[j+1] = tmp //j+1
-		}
-	}
-}
-</code></pre>
-<h2 id="计数排序">计数排序</h2>
-<ul>
-<li>CountingSort()</li>
-<li>也叫<strong>变相插入排序</strong> DisguisedFormSort()</li>
-</ul>
-<h4 id="应用场景">应用场景：</h4>
-<p>举例：</p>
-<p>​		有10万个数，每个数值的取值范围0-999。将该10万个乱序的数据集排序成有序数据集输出。</p>
-<p><img src="https://meetbetter.github.io/post-images/1564112246167.gif" alt=""></p>
-<p>算法：</p>
-<ol>
-<li>定义map用来统计 10 万个数中，各个数出现的次数</li>
-<li>遍历10万个数，以0-999为 map的key，用value累计 key 对应的数值出现的次数。</li>
-<li>循环从0-999，按各个数出现的次数打印输出。</li>
-</ol>
-<pre><code class="language-go">// 计数统计排序
-func CountingSort(s []int) {
-	// 创建 map 统计 1-999 每个数出现的 次数.
-	m := make(map[int]int)
-
-	// 遍历 切片,统计各个数出现的次数,使用 map 记录
-	for i := 0; i &lt; len(s); i++ {
-		m[s[i]]++
-	}
-
-	fmt.Println(&quot;\n&quot;, m)
-
-	// 按序借助map 输出所有数据
-	for i := 0; i &lt; 1000; i++ {
-		// 内层循环按 每个数,出现的次数打印
-		for j := 0; j &lt; m[i]; j++ {
-
-			fmt.Print(i, &quot; &quot;)
-		}
-	}
-
-}
-</code></pre>
-<h2 id="希尔排序">希尔排序</h2>
-<ul>
-<li>也叫缩小增量（increment）排序</li>
-<li>ShellSort()</li>
-</ul>
-<p><img src="https://meetbetter.github.io/post-images/1564112433382.gif" alt=""></p>
-<p>算法：</p>
-<ol>
-<li>使用数组长度 / 2 , 得到初始增量。</li>
-<li>将 0 的元素 和 增量值对应的元素，比大小。交换</li>
-<li>顺序 按增量依次 后移 ，成对数据比较。</li>
-<li>缩小增量值，重复2-3。</li>
-</ol>
-<pre><code class="language-go">func ShellSort(arr []int) {
-	for inc := len(arr) / 2; inc &gt; 0; inc /= 2 {
-		for i := inc; i &lt; len(arr); i++ {
-
-			for j := i; j-inc &gt;= 0; j -= inc {
-				if arr[j] &lt; arr[j-inc] {
-					arr[j], arr[j-inc] = arr[j-inc], arr[j]
-				} else {
-					break
-				}
-
-			}
-		}
-	}
-
-}
-</code></pre>
-<h2 id="快速排序">快速排序</h2>
-<ul>
-<li>QuickSort()<br>
-<img src="https://meetbetter.github.io/post-images/1564112684563.gif" alt=""></li>
-</ul>
-<p>算法：</p>
-<ol>
-<li>选定第一个元素为基准值</li>
-<li>从第二个元素开始，向后遍历数组，比基准值小，继续后移，比基准值大，停止。</li>
-<li>从尾元素开始，向前遍历数组，比基准值大，继续前移，比基准值小，停止。与上步找到的元素交换。</li>
-<li>重复 2/3步，直到 向后遍历和向前遍历重合。分区。</li>
-<li>对应分区，重新确定基准值，重新执行上述 1-5步。</li>
-</ol>
-<pre><code class="language-go">func QuickSort(arr []int, left, right int) {
-
-	//1. 设置基准值和基准值所在下标
-	pivot := arr[left]  //基准值
-	index := left       //基准下标
-	i, j := left, right //本次比较开始时的左右下标
-
-	//2. 将本组数据小于pivot的移动到左侧,大于pivot的移动到pivot右侧
-	for i &lt;= j { //循环直到i，j相遇，即一组比较完成
-		//2.1 pivot和右侧比较,有小于pivot的则和pivot交换位置
-		for j &gt;= index &amp;&amp; arr[j] &gt;= pivot { //左移直到找到比基准值小的数据或者i,j相遇
-			j--
-		}
-		if j &gt;= index { //i&gt;=index成立说明是找到了比pivot小的数据
-			arr[index] = arr[j] //将小值移动到pivot所在位置
-			index = j           //将index指向比pivot小的位置
-		}
-
-		//2.2 pivot和左侧比较,有大于pivot的则和pivot交换位置
-		for i &lt;= index &amp;&amp; arr[i] &lt;= pivot { //右移直到找到比基准值大的数据或者i,j相遇
-			i++
-		}
-		if i &lt;= index { //i&lt;=index成立说明arr[i] &lt;= pivot不成立,即左侧找到比pivot大的数据
-			arr[index] = arr[i] //将大值移动到当前index指向的位置
-			index = i           //index指向此处
-		}
-	}
-
-	//3. 此时基准值的位置永久固定，左侧均小于pivot，右侧均大于pivot
-	arr[index] = pivot //比较完成后pivot应该在index处，左侧比pivot小，右侧比pivot大
-
-	//4. 递归进入两个新的分组执行比较和分组，直到全部比较完成
-	if index-left &gt; 1 { //只有两个数据以上才需要比较
-		QuickSort(arr, left, index-1)
-	}
-	if right-index &gt; 1 {
-		QuickSort(arr, index+1, right)
-	}
-
-}
-</code></pre>
-<h2 id="堆排序">堆排序</h2>
-<ul>
-<li>HeapSort()<br>
-<img src="https://meetbetter.github.io/post-images/1564112958377.gif" alt=""></li>
-</ul>
-<p>算法：</p>
-<ol>
-<li>将线性表，转换成 完全二叉树存储。</li>
-<li>从非叶子结点开，依次采用大根堆比较子树的（最多3个结点）。最大值保存在树的根节点</li>
-</ol>
-<blockquote>
-<p>大根堆：将数据序列按二叉树存储，各个子树的根节点，均保存该子树最大值。</p>
-</blockquote>
-<ol start="4">
-<li>将根结点数据，与最后一个叶子结点数据交换。确定一个最大数。</li>
-<li>重复上述 2-3步。</li>
-</ol>
-<p>递归实现：</p>
-<pre><code class="language-go">//初始化堆
-func HeapInit(arr []int) {
-
-	//将切片转成二叉树模型  实现大根堆
-	length := len(arr)
-	for i := length/2 - 1; i &gt;= 0; i-- {		// 4,3,2,1 
-		HeapSort2(arr, i, length-1)
-	}
-
-	//根节点存储最大值
-	for i := length - 1; i &gt; 0; i-- {
-		//如果只剩下根节点和跟节点下的左子节点
-		if i == 1 &amp;&amp; arr[0] &lt;= arr[i] {
-			break
-		}
-		//将根节点和叶子节点数据交换
-		arr[0], arr[i] = arr[i], arr[0]
-		HeapSort2(arr, 0, i-1)
-	}
-}
-
-//获取堆中最大值  放在根节点
-func HeapSort2(arr []int, startNode int, maxNode int) {
-
-	// 最大值放在根节点
-	var max int
-
-	// 定义左子节点和右子节点
-	lChild := startNode*2 + 1
-	rChild := lChild + 1
-	// 子节点超过比较范围 跳出递归
-	if lChild &gt;= maxNode {
-		return
-	}
-	// 左右比较  找到最大值
-	if rChild &lt;= maxNode &amp;&amp; arr[rChild] &gt; arr[lChild] {
-		max = rChild
-	} else {
-		max = lChild
-	}
-
-	// 和跟节点比较
-	if arr[max] &lt;= arr[startNode] {
-		return
-	}
-
-	// 交换数据
-	arr[startNode], arr[max] = arr[max], arr[startNode]
-
-	// 递归进行下次比较
-	HeapSort2(arr, max, maxNode)
-}
-
-func main()  {
-	arr := []int{6, 9, 10, 2, 7, 1, 3, 5, 8, 4}
-	HeapInit(arr)
-	fmt.Println(arr)
-}
-</code></pre>
-<h2 id="归并排序">归并排序</h2>
-<ul>
-<li>MergeSort<br>
-<img src="https://meetbetter.github.io/post-images/1564113638714.gif" alt=""></li>
-</ul>
-<p>算法：</p>
-<ol>
-<li>将长度为n的输入序列分为长度为n/2的子序列，</li>
-<li>对两个子序列分别采用排序</li>
-<li>将排序好的子序列合并成一个序列</li>
-<li>递归执行分组和合并操作。</li>
-</ol>
-<pre><code class="language-go">func merge3(arr []int, left, mid, right int) {
-	temp := make([]int, right-left+1)
-
-	i, j := left, mid+1
-	k := 0
-
-	for i &lt;= mid &amp;&amp; j &lt;= right {
-		if arr[i] &lt; arr[j] {
-			temp[k] = arr[i]
-			k++
-			i++
-		} else {
-			temp[k] = arr[j]
-			k++
-			j++
-		}
-	}
-
-	for i &lt;= mid {
-		temp[k] = arr[i]
-		k++
-		i++
-	}
-
-	for j &lt;= right {
-		temp[k] = arr[j]
-		k++
-		j++
-	}
-
-	//赋值给原arr
-	k = 0
-	for left &lt;= right {
-		arr[left] = temp[k]
-		k++
-		left++
-	}
-
-}
-
-//归并排序
-func MergeSort(arr []int, left, right int) {
-	if left &gt;= right {
-		return
-	}
-
-	mid := (left + right) / 2 //+1是避免对2取余导致最后一个数据丢失
-	MergeSort(arr, left, mid)
-	MergeSort(arr, mid+1, right)
-
-	if arr[mid] &gt; arr[mid+1] { //当左边最后一个数据不大于右边第一个数据时不需要归并,减少不必要的操作
-		//merge1(arr, left, mid, right)
-		//merge2(arr, left, mid, right)
-		merge3(arr, left, mid, right)
-	}
-
-}
-</code></pre>
-<h2 id="二分法查找">二分法查找</h2>
-<ul>
-<li>BinarySearch()</li>
-<li>只适用于 有序数据集。一般是先排序，再查找。</li>
-</ul>
-<pre><code class="language-go">func BinarySearch(arr []int, num int) int {
-
-	start := 0               //定义起始下标
-	end := len(arr) - 1      //定义结束下标
-	mid := (start + end) / 2 //定义中间基准值
-
-	for i := 0; i &lt; len(arr); i++ {
-		if num == arr[mid] { //中间基准值直接为查找值
-			return mid //返回下标
-		} else if num &gt; arr[mid] { //查找值 比基准值大
-			start = mid + 1 //查找右侧
-		} else { //查找值 比基准值小
-			end = mid - 1 //查找左侧
-		}
-
-		mid = (start + end) / 2 //根据新起始、结束下标，再次设置中间基准值
-	}
-
-	return -1 //没有找到
-}
-</code></pre>
-<p><a href="https://github.com/meetbetter/learn-golang"><strong>Golang学习示例代码,欢迎star</strong></a></p>
-<p>文章中 gif 动图来源：<a href="https://www.cnblogs.com/onepixel/p/7674659.html">https://www.cnblogs.com/onepixel/p/7674659.html</a></p>
 ]]></content>
     </entry>
 </feed>

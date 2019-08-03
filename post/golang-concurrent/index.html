@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564580622347">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564841609230">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1564580622347" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1564841609230" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -108,11 +108,132 @@
             <div class="post-content">
               <p><a href="https://www.flysnow.org/2017/05/12/go-in-action-go-context.html">飞雪无情</a><br>
 <a href="https://www.kancloud.cn/liupengjie/go/577494">参考总结</a></p>
-<p>大家经常说“Go语言是为了并发而生”、“Go语言是高并发时代的C语言”，这时因为Go通过goroutine（go中的协程）实现语言层面支持并发，每个goroutine默认只需要8KB的堆栈空间，所以我们可以轻松开启上万个goroutine，那么这么多</p>
-<h1 id="并发概念">并发概念</h1>
+<p>大家经常说“Go语言是为了并发而生”、“Go语言是高并发时代的C语言”，这是因为Go通过goroutine（go中的协程）实现语言层面支持并发，每个goroutine默认只需要8KB的堆栈空间，并且有强大的<a href="https://bettertxt.top/post/golang-scheduler/">Go调度器</a>，所以我们可以轻松开启上万个goroutine。那如果我们需要某些goroutine按照一定的逻辑顺序执行和结束，这么多goroutine如何控制呢？<br>
+下面就介绍Go中控制并发的三种方式：channel、WaitGroup和context。</p>
+<blockquote>
+<p>文中所有代码均在Github<a href="https://github.com/meetbetter/learn-golang/tree/master/02_advance/10_Concurrence">跟着示例代码学golang项目</a>中，持续更新中。</p>
+</blockquote>
 <h1 id="channel">channel</h1>
-<h1 id="waitgroup">waitgroup</h1>
+<p>channel是Go语言CSP模式(Communicating Sequential Processes)的具体实现，用于在goroutine之间的通信，也可以控制多个goroutine的并发同步，并且channel是并发安全的。下面介绍channel控制并发goroutine的两个常用场景：</p>
+<ol>
+<li>有一个goroutine在做重复任务，永远不会退出，即死循环，那如果我们要从外部关闭它呢？传统的方式是增加一个全局变量做通知信号，goroutine不断地判断这个全局变量，当被通知关闭时就结束goroutine，但是这样做需要用读写锁来保证线程安全，而且也不符合Go语言CSP的思想，我们有更优雅的方式：channel + select。</li>
+</ol>
+<pre><code class="language-go">func main() {
+	stop := make(chan bool)
+
+	go func() {
+		for {
+			select {
+			case &lt;-stop:
+				fmt.Println(&quot;监控退出，停止了...&quot;)
+				return
+			default:
+				fmt.Println(&quot;goroutine监控中...&quot;)
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}()
+
+	time.Sleep(10 * time.Second)
+	fmt.Println(&quot;可以了，通知监控停止&quot;)
+	stop &lt;- true
+	//为了检测监控是否停止，如果没有监控输出，就表示停止了
+	time.Sleep(5 * time.Second)
+
+}
+</code></pre>
+<blockquote>
+<p>本文主要介绍WaitGroup和context，更多的channel控制并发的场景可以参考我之前的文章<a href="https://bettertxt.top/post/go-channel/">Go channel应用</a>。</p>
+</blockquote>
+<h1 id="waitgroup">WaitGroup</h1>
+<p>channel可以方便的通知一个goroutine结束，如果我们有一组goroutine需要控制结束呢？sync包下WaitGroup从名字就可以看出它的作用——等待一组goroutine全局结束才会继续往下执行。WaitGroup总共有三个方法：Add(delta int),Done(),Wait()。<br>
+Add：添加或者减少等待goroutine的数量<br>
+Done:相当于Add(-1)<br>
+Wait:执行阻塞，直到所有的WaitGroup数量变成0。</p>
+<pre><code class="language-go">func main() {
+	var wg sync.WaitGroup
+
+	wg.Add(10)
+
+	for i := 0; i &lt; 10; i++ {
+		go func(i int) {
+			time.Sleep(1 * time.Second)
+			fmt.Printf(&quot;%d号完成\n&quot;, i)
+			wg.Done()
+		}(i)
+	}
+
+	wg.Wait()
+	fmt.Println(&quot;好了，大家都干完了，放工&quot;)
+}
+</code></pre>
 <h1 id="context">context</h1>
+<p>但是如果一组goroutine中又创建了很多的goroutine，甚至新的goroutine又创建了很多goroutine，一层层的嵌套下去，这个时候channel和WaitGroup都无能为力了。为了控制这种场景下的goroutine，我们需要使用context跟踪并控制他们。<br>
+context中文译作上下文，用在这儿非常贴切，利用goroutine的上下文关系来控制他们结束。</p>
+<h2 id="withcancel控制一个goroutine">WithCancel控制一个goroutine</h2>
+<pre><code class="language-go">func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	go func(ctx context.Context) {
+		for {
+			select {
+			case &lt;-ctx.Done():
+				fmt.Println(&quot;监控退出，停止了...&quot;)
+				return
+			default:
+				fmt.Println(&quot;goroutine监控中...&quot;)
+				time.Sleep(2 * time.Second)
+			}
+		}
+	}(ctx)
+
+	time.Sleep(10 * time.Second)
+	fmt.Println(&quot;可以了，通知监控停止&quot;)
+	cancel()
+	//为了检测监控是否停止，如果没有监控输出，就表示停止了
+	time.Sleep(5 * time.Second)
+
+}
+</code></pre>
+<h2 id="withcancel控制多个goroutine">WithCancel控制多个goroutine</h2>
+<pre><code class="language-go">func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	for i := 0; i &lt; 10; i++ {
+		go watch(ctx, i)
+	}
+
+	time.Sleep(10 * time.Second)
+	fmt.Println(&quot;可以了，通知监控停止&quot;)
+	cancel()
+	//为了检测监控是否停止，如果没有监控输出，就表示停止了
+	time.Sleep(5 * time.Second)
+}
+
+func watch(ctx context.Context, i int) {
+	for {
+		select {
+		case &lt;-ctx.Done():
+			fmt.Println(i, &quot;监控退出，停止了...&quot;)
+			return
+		default:
+			fmt.Printf(&quot;goroutine %d监控中...\n&quot;, i)
+			time.Sleep(1 * time.Second)
+		}
+	}
+}
+</code></pre>
+<h2 id="withtimeout">WithTimeout</h2>
+<h2 id="withdeadline">WithDeadline</h2>
+<p>注意: 使用时遵循context规则</p>
+<ol>
+<li>不要将 Context 放入结构体，Context应该作为第一个参数传<br>
+入，命名为ctx。</li>
+<li>即使函数允许，也不要传入nil的 Context。如果不知道用哪种<br>
+Context，可以使用context.TODO()。</li>
+<li>使用context的Value相关方法,只应该用于在程序和接口中传递<br>
+和请求相关数据，不能用它来传递一些可选的参数</li>
+<li>相同的 Context 可以传递给在不同的goroutine；Context 是<br>
+并发安全的。</li>
+</ol>
 
             </div>
             

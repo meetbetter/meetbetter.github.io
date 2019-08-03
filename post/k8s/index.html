@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564580622347">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564841609230">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1564580622347" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1564841609230" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -106,7 +106,77 @@
             <div class="post-date">2019-05-28</div>
             
             <div class="post-content">
-              <pre><code class="language-shell">[root@master ~]# rz
+              <ol>
+<li>自动化编排工具</li>
+<li>Google内部使用多年，并用Go重写</li>
+<li>社区非常活跃</li>
+</ol>
+<h1 id="rc副本控制器">RC副本控制器</h1>
+<p>副本数量管理，具有自动新建和删除功能，保证nod数和期望的一致。</p>
+<h1 id="rs">RS</h1>
+<h1 id="deployment">deployment</h1>
+<p>批量更新使用场景，作用？更新的是镜像（容器）？不需要指定镜像在哪个pod？还是更新pod？<br>
+pod里面的容器都是做同一件事情的吗？</p>
+<pre><code class="language-shell">			滚动更新
+				strategy:
+				  type: RollingUpdate			策略是默认的
+				  rollingUpdate:
+					maxSurge: 1					新增pod的时候，一次只增加一个
+					maxUnavailable: 1			删除旧pod的时候，一次只删除一个	
+
+				实践：
+					apiVersion: extensions/v1beta1
+					kind: Deployment
+					metadata:
+					  name: nginx-deploy
+					spec:
+					  replicas: 3
+					  selector:
+						matchLabels:
+						  app: nginx
+					  template:
+						metadata:
+						  labels:
+							app: nginx
+						spec:
+						  containers:
+						  - image: nginx:v1.17.1
+							imagePullPolicy: IfNotPresent
+							name: nginx				
+					实验技巧：
+						你找一个本地仓库中没有的镜像
+</code></pre>
+<pre><code class="language-shell">		2.3.6 DaemonSet 
+			特点：
+				每个节点上都会自动配置一个pod 
+			操作：
+				pod在定义的时候，必须有labels
+				selector 可以忽略
+				
+			实践：
+				apiVersion: extensions/v1beta1
+				kind: DaemonSet
+				metadata:
+				  name: daemonset
+				spec:
+				  template:
+					metadata:
+					  name: daemonset
+					  labels:
+						app: daemonset
+					spec:
+					  containers:
+						- name: daemonset
+						  image: nginx:v1.17.2
+						  imagePullPolicy: IfNotPresent	
+			注意点：
+				daemonset 不支持扩容缩容
+				更新镜像的时候，仅仅对daemonset生效，而对pod不生效。
+</code></pre>
+<p>https://jicki.me/<br>
+https://jimmysong.io/<br>
+https://www.qikqiak.com/k8s-book/</p>
+<pre><code class="language-shell">[root@master ~]# rz
 rz waiting to receive.
  zmodem trl+C ȡ
 
