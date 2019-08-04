@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-08-03T14:14:47.849Z</updated>
+    <updated>2019-08-04T01:58:37.224Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -467,12 +467,12 @@ Go 语⾔如果发现扫描后回收的速度跟不上分配的速度它依然�
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Go interface和nil踩坑]]></title>
+        <title type="html"><![CDATA[Go“一个包含nil指针的接口不是nil接口”踩坑]]></title>
         <id>https://meetbetter.github.io/post/go-interface-nil</id>
         <link href="https://meetbetter.github.io/post/go-interface-nil">
         </link>
         <updated>2018-11-03T12:53:59.000Z</updated>
-        <content type="html"><![CDATA[<p>最近在项目中踩了一个深坑——“Golang中一个包含nil指针的接口不是nil接口”，如果你不是很理解这句话那推荐认真看下下面的分析，避免以后写代码时踩坑。</p>
+        <content type="html"><![CDATA[<p>最近在项目中踩了一个深坑——“Golang中一个包含nil指针的接口不是nil接口”，总结下分享出来，如果你不是很理解这句话，那推荐认真看下下面的示例代码，避免以后写代码时踩坑。</p>
 <h1 id="示例一">示例一</h1>
 <p>先一起来看下这段代码，你感觉有没有问题呢？</p>
 <pre><code class="language-go">type IPeople interface {
@@ -620,8 +620,8 @@ type itab struct {
 </code></pre>
 <p>以上完整代码均整理在<a href="https://github.com/meetbetter/learn-golang/tree/master/02_advance/11_nil-interface">Github-跟着示例代码学Golang项目</a>。</p>
 <p>参考文章：<br>
-<a href="https://studygolang.com/articles/10635">Golang第一大坑</a><br>
-<a href="https://gocn.vip/question/1011">&quot;一个包含nil指针的接口不是nil接口&quot;的讨论</a></p>
+<a href="https://studygolang.com/articles/10635">Golang第一大坑</a></p>
+<p><a href="https://gocn.vip/question/1011">&quot;一个包含nil指针的接口不是nil接口&quot;的讨论</a></p>
 ]]></content>
     </entry>
     <entry>

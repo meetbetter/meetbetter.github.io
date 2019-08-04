@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" >
 
-<title>Go interface和nil踩坑 | Betterman</title>
+<title>Go“一个包含nil指针的接口不是nil接口”踩坑 | Betterman</title>
 <meta name="description" content="记录自己，期望可以帮到需要的人">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564841609230">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564883484226">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1564841609230" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1564883484226" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -102,11 +102,11 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">Go interface和nil踩坑</h2>
+            <h2 class="post-title">Go“一个包含nil指针的接口不是nil接口”踩坑</h2>
             <div class="post-date">2018-11-03</div>
             
             <div class="post-content">
-              <p>最近在项目中踩了一个深坑——“Golang中一个包含nil指针的接口不是nil接口”，如果你不是很理解这句话那推荐认真看下下面的分析，避免以后写代码时踩坑。</p>
+              <p>最近在项目中踩了一个深坑——“Golang中一个包含nil指针的接口不是nil接口”，总结下分享出来，如果你不是很理解这句话，那推荐认真看下下面的示例代码，避免以后写代码时踩坑。</p>
 <h1 id="示例一">示例一</h1>
 <p>先一起来看下这段代码，你感觉有没有问题呢？</p>
 <pre><code class="language-go">type IPeople interface {
@@ -254,8 +254,8 @@ type itab struct {
 </code></pre>
 <p>以上完整代码均整理在<a href="https://github.com/meetbetter/learn-golang/tree/master/02_advance/11_nil-interface">Github-跟着示例代码学Golang项目</a>。</p>
 <p>参考文章：<br>
-<a href="https://studygolang.com/articles/10635">Golang第一大坑</a><br>
-<a href="https://gocn.vip/question/1011">&quot;一个包含nil指针的接口不是nil接口&quot;的讨论</a></p>
+<a href="https://studygolang.com/articles/10635">Golang第一大坑</a></p>
+<p><a href="https://gocn.vip/question/1011">&quot;一个包含nil指针的接口不是nil接口&quot;的讨论</a></p>
 
             </div>
             
