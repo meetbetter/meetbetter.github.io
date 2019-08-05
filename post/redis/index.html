@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1564885550967">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1565015288100">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1564885550967" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1565015288100" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -109,8 +109,30 @@
               <p>底层实现<br>
 <a href="https://www.cnblogs.com/joylee/p/redisscene.html">别人总结+自己分表理解</a><br>
 Redis单线程 分布式锁<br>
-<a href="https://juejin.im/post/5b8fc5536fb9a05d2d01fb11">全面的redis系列文章</a><br>
-击穿</p>
+<a href="https://juejin.im/post/5b8fc5536fb9a05d2d01fb11">全面的redis系列文章</a></p>
+<p>项目架构中每个操作MySQL的请求都要经过redis缓存：</p>
+<ol>
+<li>提高访问速度</li>
+<li>防止所有请求都直接打到MySQL造成数据库崩溃</li>
+<li>后端过滤重复请求</li>
+</ol>
+<p>redis做缓存时要考虑：</p>
+<p><strong>缓存穿透</strong>（客户端发来大量MySQL不存在的请求），解决方法：</p>
+<ol>
+<li>第一次请求不存在的资源也要在redis建一个缓存，给客户端返回错误信息而不是让无效请求打到MySQL，但是缓存失效时间要短一些防止redis被无效请求占满</li>
+<li>布隆过滤（bloomfilter，用bitmap标记所有MySQL存在的可能请求），数据库中不存在的请求直接返回</li>
+</ol>
+<p><strong>缓存雪崩</strong>：大量缓存失效时间相同，造成突然之间大量请求被打到数据库，解决办法：</p>
+<ol>
+<li>将缓存时在原有时间基础上添加随机值，防止同时失效造成雪崩。</li>
+</ol>
+<p><strong>缓存击穿</strong>：某个热点的请求的访问量很大，失效时也会有大量请求打到数据库，这时对失效时间增加随机时间的方法无效，只能用布隆过滤器。</p>
+<p><strong>redis挂了呢</strong>：</p>
+<p>事发前：redis主从，哨兵或cluster实现高可用</p>
+<p>事发时：本地缓存(ehcache)+限流(hystrix)</p>
+<p>事发后：redis持久化，以便快速恢复。</p>
+<p><strong>redis和MySQL数据一致性问题</strong>：</p>
+<p>貌似可以用：操作时增加事务操作，保证更新时redis和MySQL的一致性；并且最好先删除redis再更新数据库就可以在数据库更新时重新缓存到redis；多个线程加锁操作防止多线程数据不一致；实在不行就使用队列将请求编程串行，看项目能不能接收串行操作。</p>
 
             </div>
             
