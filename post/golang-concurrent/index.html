@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1565930850030">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1565949986490">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1565930850030" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1565949986490" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -111,7 +111,7 @@
 <p>大家经常说“Go语言是为了并发而生”、“Go语言是高并发时代的C语言”，这是因为Go通过goroutine（go中的协程）实现语言层面支持并发，每个goroutine默认只需要8KB的堆栈空间，并且有强大的<a href="https://bettertxt.top/post/golang-scheduler/">Go调度器</a>，所以我们可以轻松开启上万个goroutine。那如果我们需要某些goroutine按照一定的逻辑顺序执行和结束，这么多goroutine如何控制呢？<br>
 下面就介绍Go中控制并发的三种方式：channel、WaitGroup和context。</p>
 <blockquote>
-<p>文中所有代码均在Github<a href="https://github.com/meetbetter/learn-golang/tree/master/02_advance/10_Concurrence">跟着示例代码学golang项目</a>中，持续更新中。</p>
+<p>文中所有代码均在Github[跟着示例代码学golang项目]https://github.com/meetbetter/go-programming)中，持续更新中。</p>
 </blockquote>
 <h1 id="channel">channel</h1>
 <p>channel是Go语言CSP模式(Communicating Sequential Processes)的具体实现，用于在goroutine之间的通信，也可以控制多个goroutine的并发同步，并且channel是并发安全的。下面介绍channel控制并发goroutine的两个常用场景：</p>
