@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-08-16T13:14:22.466Z</updated>
+    <updated>2019-08-16T13:40:47.128Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -653,9 +653,16 @@ SCHED 22219ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=
 Go 语⾔如果发现扫描后回收的速度跟不上分配的速度它依然会把⽤户逻辑暂停，⽤户逻辑暂停了以后也就意味着不会有新的对象出现，同时会把⽤户线程抢过来加⼊到垃圾回收⾥⾯加快垃圾回收的速度。这样⼀来原来的并发还是变成了STW，还是得把⽤户线程暂停掉，要不然扫描和回收没完没了了停不下来，因为新分配对象⽐回收快，所以这种东⻄叫做辅助回收。</p>
 <h2 id="如何进行gc调优">如何进行GC调优</h2>
 <p>衡量GC对程序的影响可以参考这篇文章，<a href="https://www.oschina.net/translate/debugging-performance-issues-in-go-programs">Go 程序的性能调试问题</a>。<br>
-减少GC对象分配；<br>
-避免string与[]byte转化；<br>
-少量使用+连接 string；</p>
+减少对象的分配，合理重复利用；<br>
+避免string与[]byte转化；</p>
+<blockquote>
+<p>两者发生转换的时候，底层数据结结构会进行复制，因此导致 gc 效率会变低。</p>
+</blockquote>
+<p>少量使用+连接 string；</p>
+<blockquote>
+<p>Go里面string是最基础的类型，是一个只读类型，针对他的每一个操作都会创建一个新的string。<br>
+如果是少量小文本拼接，用 “+” 就好；如果是大量小文本拼接，用 strings.Join；如果是大量大文本拼接，用 bytes.Buffer。</p>
+</blockquote>
 <h2 id="gc触发条件">GC触发条件</h2>
 <p>自动垃圾回收的触发条件有两个：</p>
 <ol>
@@ -666,7 +673,9 @@ Go 语⾔如果发现扫描后回收的速度跟不上分配的速度它依然�
 </ol>
 <h1 id="写在最后">写在最后</h1>
 <p>虽然Golang有自动垃圾回收机制，但是GC不是万能的，最好还是养成手动回收内存的习惯：比如在程序中调用runtime.GC()，也可以手动把不适用的对象置成nil。</p>
+<p>近期在维护的go学习示例代码，新手朋友们可以看下<a href="https://github.com/meetbetter/go-programming">go-programming</a></p>
 <p>参考：<br>
+<a href="https://gocn.vip/question/265">string讨论</a><br>
 <a href="https://www.jianshu.com/p/8b0c0f7772da">Go语言——垃圾回收GC</a><br>
 <a href="https://mp.weixin.qq.com/s/Wh7A6czDIRofxveY_bEDNQ">Golang 垃圾回收剖析</a><br>
 <a href="https://blog.csdn.net/u010649766/article/details/80582153">Golang垃圾回收机制详解</a><br>
