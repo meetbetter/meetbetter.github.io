@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-08-16T13:40:47.128Z</updated>
+    <updated>2019-08-16T13:48:14.112Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -611,9 +611,9 @@ SCHED 22219ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=
 <p>原始的标记清楚法分为两个步骤：</p>
 <ol>
 <li>标记。先STP(Stop The World)，暂停整个程序的全部运行线程，将被引用的对象打上标记</li>
-<li>清除没有被打标机的对象，即回收内存资源，然后恢复运行线程。<br>
-这样做有个很大的问题就是要通过STW保证GC期间标记对象的状态不能变化，整个程序都要暂停掉，在外部看来程序旧很卡。</li>
+<li>清除没有被打标机的对象，即回收内存资源，然后恢复运行线程。</li>
 </ol>
+<p>这样做有个很大的问题就是要通过STW保证GC期间标记对象的状态不能变化，整个程序都要暂停掉，在外部看来程序就会卡顿。</p>
 <h2 id="三色标记法">三色标记法</h2>
 <p>三色标记法是对标记阶段的改进，原理如下：</p>
 <ol>
@@ -625,11 +625,11 @@ SCHED 22219ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=
 看了很多文章都没解释这这个概念，在这儿说明下：root区域主要是程序运行到当前时刻的栈和全局数据区域。</p>
 </blockquote>
 <p><img src="https://meetbetter.github.io/post-images/1564319758848.png" alt=""><br>
-3.  分析灰色对象是否引用了其他对象。如果没有引用其它对象则将该灰色对象标记为黑色（图中A）；如果有引用则将它变为黑色的同时将它引用的对象也变为灰色（图中B引用了D）<br>
-4. 重复步骤3，直到灰色对象队列为空。此时白色对象即为垃圾，进行回收。<br>
-也可以参考下面的动图辅助理解：<br>
+3.  分析灰色对象是否引用了其他对象。如果没有引用其它对象则将该灰色对象标记为黑色（上图中A）；如果有引用则将它变为黑色的同时将它引用的对象也变为灰色（上图中B引用了D）<br>
+4. 重复步骤3，直到灰色对象队列为空。此时白色对象即为垃圾，进行回收。</p>
+<p>也可以参考下面的动图辅助理解：<br>
 <img src="https://meetbetter.github.io/post-images/1563296640046.gif" alt=""></p>
-<h2 id="go-gc如何工作">GO GC如何工作</h2>
+<h2 id="go-gc如何工作">Go GC如何工作</h2>
 <p>上面介绍的是GO GC采用的三色标记算法，但是好像并没有体现出来怎么减少STW对程序的影响呢？其实是因为<strong>Golang GC的大部分处理是和用户代码并行的</strong>。</p>
 <p>GC期间用户代码可能会改变某些对象的状态，如何实现GC和用户代码并行呢？先看下GC工作的完整流程：</p>
 <ol>
@@ -673,7 +673,7 @@ Go 语⾔如果发现扫描后回收的速度跟不上分配的速度它依然�
 </ol>
 <h1 id="写在最后">写在最后</h1>
 <p>虽然Golang有自动垃圾回收机制，但是GC不是万能的，最好还是养成手动回收内存的习惯：比如在程序中调用runtime.GC()，也可以手动把不适用的对象置成nil。</p>
-<p>近期在维护的go学习示例代码，新手朋友们可以看下<a href="https://github.com/meetbetter/go-programming">go-programming</a></p>
+<p>近期在维护的go学习示例代码，新手朋友们可以关注下<a href="https://github.com/meetbetter/go-programming">go-programming</a></p>
 <p>参考：<br>
 <a href="https://gocn.vip/question/265">string讨论</a><br>
 <a href="https://www.jianshu.com/p/8b0c0f7772da">Go语言——垃圾回收GC</a><br>
