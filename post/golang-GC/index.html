@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" >
 
-<title>Golang GC全解析 | Betterman</title>
+<title>搞懂Golang GC | Betterman</title>
 <meta name="description" content="记录自己，期望可以帮到需要的人">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1565963348344">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1565965411637">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1565963348344" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1565965411637" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -102,7 +102,7 @@
       <div class="main-container">
         <div class="content-container" data-aos="fade-up">
           <div class="post-detail">
-            <h2 class="post-title">Golang GC全解析</h2>
+            <h2 class="post-title">搞懂Golang GC</h2>
             <div class="post-date">2018-12-30</div>
             
             <div class="post-content">
@@ -177,7 +177,7 @@ Go 语⾔如果发现扫描后回收的速度跟不上分配的速度它依然�
 如果一直达不到内存大小的阈值呢？这个时候GC就会被定时时间触发，比如一直达不到10M，那就定时（默认2min触发一次）触发一次GC保证资源的回收。</li>
 </ol>
 <h1 id="写在最后">写在最后</h1>
-<p>虽然Golang有自动垃圾回收机制，但是GC不是万能的，最好还是养成手动回收内存的习惯：比如在程序中调用runtime.GC()，也可以手动把不适用的对象置成nil。</p>
+<p>虽然Golang有自动垃圾回收机制，但是GC不是万能的，最好还是养成手动回收内存的习惯：比如手动把不再使用的内存释放，把对象置成nil，也可以考虑在合适的时候调用runtime.GC()触发GC。</p>
 <p>近期在维护的go学习示例代码，新手朋友们可以关注下<a href="https://github.com/meetbetter/go-programming">go-programming</a></p>
 <p>参考：<br>
 <a href="https://gocn.vip/question/265">string讨论</a><br>

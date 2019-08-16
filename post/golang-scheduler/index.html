@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1565963348344">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1565965411637">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1565963348344" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1565965411637" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -176,7 +176,7 @@ b
 a
 </code></pre>
 <blockquote>
-<p>更多Go调度器示例代码可以在<a href="https://github.com/meetbetter/learn-golang/tree/master/02_advance/09_Go-Schedule">跟着示例代码学golang</a>中查看，持续更新，欢迎star。</p>
+<p>更多Go调度器示例代码可以在<a href="https://github.com/meetbetter/go-programming/tree/master/02_advance/09_Go-Schedule">跟着示例代码学golang</a>中查看，持续更新，欢迎star。</p>
 </blockquote>
 <p>可能你的第一反应是“不应该是输出a,b,c,吗？为什么输出是c,a,b呢？”<br>
 这里我们虽然是使用for循环创建了3个goroutine，而且创建顺序是a,b,c，按之前的分析应该是将a,b,c三个goroutine依次放进P的局部队列，然后按照顺序依次执行a,b,c所在的goroutine，为什么每次都是先执行c所在的goroutine呢？这是因为同一逻辑处理器中三个任务被创建后 理论上会按顺序 被放在同一个任务队列，但实际上最后那个任务会被放在专一的next（下一个要被执行的任务的意思）的位置，所以优先级最高，最可能先被执行，所以表现为<strong>在同一个goroutine中创建的多个任务中最后创建那个任务最可能先被执行</strong>。</p>
@@ -313,7 +313,7 @@ SCHED 22219ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=
                 <div class="next">下一篇</div>
                 <a href="https://meetbetter.github.io/post/golang-GC">
                   <h3 class="post-title">
-                    Golang GC全解析
+                    搞懂Golang GC
                   </h3>
                 </a>
               </div>

@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-08-16T13:49:12.233Z</updated>
+    <updated>2019-08-16T14:23:33.937Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -472,7 +472,7 @@ b
 a
 </code></pre>
 <blockquote>
-<p>更多Go调度器示例代码可以在<a href="https://github.com/meetbetter/learn-golang/tree/master/02_advance/09_Go-Schedule">跟着示例代码学golang</a>中查看，持续更新，欢迎star。</p>
+<p>更多Go调度器示例代码可以在<a href="https://github.com/meetbetter/go-programming/tree/master/02_advance/09_Go-Schedule">跟着示例代码学golang</a>中查看，持续更新，欢迎star。</p>
 </blockquote>
 <p>可能你的第一反应是“不应该是输出a,b,c,吗？为什么输出是c,a,b呢？”<br>
 这里我们虽然是使用for循环创建了3个goroutine，而且创建顺序是a,b,c，按之前的分析应该是将a,b,c三个goroutine依次放进P的局部队列，然后按照顺序依次执行a,b,c所在的goroutine，为什么每次都是先执行c所在的goroutine呢？这是因为同一逻辑处理器中三个任务被创建后 理论上会按顺序 被放在同一个任务队列，但实际上最后那个任务会被放在专一的next（下一个要被执行的任务的意思）的位置，所以优先级最高，最可能先被执行，所以表现为<strong>在同一个goroutine中创建的多个任务中最后创建那个任务最可能先被执行</strong>。</p>
@@ -596,7 +596,7 @@ SCHED 22219ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Golang GC全解析]]></title>
+        <title type="html"><![CDATA[搞懂Golang GC]]></title>
         <id>https://meetbetter.github.io/post/golang-GC</id>
         <link href="https://meetbetter.github.io/post/golang-GC">
         </link>
@@ -672,7 +672,7 @@ Go 语⾔如果发现扫描后回收的速度跟不上分配的速度它依然�
 如果一直达不到内存大小的阈值呢？这个时候GC就会被定时时间触发，比如一直达不到10M，那就定时（默认2min触发一次）触发一次GC保证资源的回收。</li>
 </ol>
 <h1 id="写在最后">写在最后</h1>
-<p>虽然Golang有自动垃圾回收机制，但是GC不是万能的，最好还是养成手动回收内存的习惯：比如在程序中调用runtime.GC()，也可以手动把不适用的对象置成nil。</p>
+<p>虽然Golang有自动垃圾回收机制，但是GC不是万能的，最好还是养成手动回收内存的习惯：比如手动把不再使用的内存释放，把对象置成nil，也可以考虑在合适的时候调用runtime.GC()触发GC。</p>
 <p>近期在维护的go学习示例代码，新手朋友们可以关注下<a href="https://github.com/meetbetter/go-programming">go-programming</a></p>
 <p>参考：<br>
 <a href="https://gocn.vip/question/265">string讨论</a><br>
