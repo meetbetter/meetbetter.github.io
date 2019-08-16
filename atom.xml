@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-08-16T13:13:23.181Z</updated>
+    <updated>2019-08-16T13:14:22.466Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -138,6 +138,262 @@ func main() {
 <pre><code class="language-shell">序列化前的原始数据: name:&quot;Jack&quot; age:18 hobby:&quot;sing&quot; hobby:&quot;dance&quot; hobby:&quot;basketball&quot; hobby:&quot;rap&quot; 
 反序列化得到数据: name:&quot;Jack&quot; age:18 hobby:&quot;sing&quot; hobby:&quot;dance&quot; hobby:&quot;basketball&quot; hobby:&quot;rap&quot;
 </code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Golang并发控制之道]]></title>
+        <id>https://meetbetter.github.io/post/golang-concurrent</id>
+        <link href="https://meetbetter.github.io/post/golang-concurrent">
+        </link>
+        <updated>2019-02-16T12:12:29.000Z</updated>
+        <content type="html"><![CDATA[<p>大家经常说“Go语言是为了并发而生”、“Go语言是高并发时代的C语言”，这是因为Go通过goroutine（go中的协程）实现语言层面支持并发，每个goroutine默认只需要8KB的堆栈空间，并且有强大的<a href="https://bettertxt.top/post/golang-scheduler/">Go调度器</a>，所以我们可以轻松开启上万个goroutine。那如果我们需要某些goroutine按照一定的逻辑顺序执行和结束，这么多goroutine如何控制呢？<br>
+下面就介绍Go中控制并发的三种方式：channel、WaitGroup和context。</p>
+<blockquote>
+<p>文中所有代码均在Github[跟着示例代码学golang项目]https://github.com/meetbetter/go-programming)中，持续更新中。</p>
+</blockquote>
+<h1 id="channel">channel</h1>
+<p>channel是Go语言CSP模式(Communicating Sequential Processes)的具体实现，用于在goroutine之间的通信，也可以控制多个goroutine的并发同步，并且channel是并发安全的。下面介绍channel控制并发goroutine的两个常用场景：</p>
+<ol>
+<li>有一个goroutine在做重复任务，永远不会退出，即死循环，那如果我们要从外部关闭它呢？传统的方式是增加一个全局变量做通知信号，goroutine不断地判断这个全局变量，当被通知关闭时就结束goroutine，但是这样做需要用读写锁来保证线程安全，而且也不符合Go语言CSP的思想，我们有更优雅的方式：channel + select。</li>
+</ol>
+<pre><code class="language-go">func main() {
+	stop := make(chan bool)
+
+	go func() {
+		for {
+			select {
+			case &lt;-stop:
+				fmt.Println(&quot;监控退出，停止了...&quot;)
+				return
+			default:
+				fmt.Println(&quot;goroutine监控中...&quot;)
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}()
+
+	time.Sleep(10 * time.Second)
+	fmt.Println(&quot;可以了，通知监控停止&quot;)
+	stop &lt;- true
+	//为了检测监控是否停止，如果没有监控输出，就表示停止了
+	time.Sleep(5 * time.Second)
+
+}
+</code></pre>
+<blockquote>
+<p>本文主要介绍WaitGroup和context，更多的channel控制并发的场景可以参考我之前的文章<a href="https://bettertxt.top/post/go-channel/">Go channel应用</a>。</p>
+</blockquote>
+<h1 id="waitgroup">WaitGroup</h1>
+<p>channel可以方便的通知一个goroutine结束，如果我们有一组goroutine需要控制结束呢？sync包下WaitGroup从名字就可以看出它的作用——等待一组goroutine全局结束才会继续往下执行。WaitGroup总共有三个方法：Add(delta int),Done(),Wait()。<br>
+Add：添加或者减少等待goroutine的数量<br>
+Done:相当于Add(-1)<br>
+Wait:执行阻塞，直到所有的WaitGroup数量变成0。</p>
+<pre><code class="language-go">func main() {
+	var wg sync.WaitGroup
+
+	wg.Add(10)
+
+	for i := 0; i &lt; 10; i++ {
+		go func(i int) {
+			time.Sleep(1 * time.Second)
+			fmt.Printf(&quot;%d号完成\n&quot;, i)
+			wg.Done()
+		}(i)
+	}
+
+	wg.Wait()
+	fmt.Println(&quot;好了，大家都干完了，放工&quot;)
+}
+</code></pre>
+<h1 id="context">context</h1>
+<p>但是如果一组goroutine中又创建了很多的goroutine，甚至新的goroutine又创建了很多goroutine，一层层的嵌套下去，这个时候channel和WaitGroup都无能为力了。为了控制这种场景下的goroutine，我们需要使用context跟踪并控制他们。<br>
+context中文译作上下文，用在这儿非常贴切，利用goroutine的上下文关系来控制他们结束。</p>
+<h2 id="context接口及使用">context接口及使用</h2>
+<p>context接口的定义如下：</p>
+<pre><code class="language-go">type Context interface {
+	Deadline() (deadline time.Time, ok bool)
+
+	Done() &lt;-chan struct{}
+
+	Err() error
+
+	Value(key interface{}) interface{}
+}
+</code></pre>
+<p>其中Deadline() 是获取设置的截止时间，下面会介绍截止时间如何设置，如果返回值ok==false表示没有设置截至时间，想要取消就需要通过context；<br>
+Done()方法返回的是一个channel，平时阻塞不可读，当可读时说明外部已经发起了取消请求，Done()所在goroutine就可以进行资源回收并结束；<br>
+Err()返回接口context取消的原因；<br>
+Value(key interface{}) interface{}是获取context中key对应的值。</p>
+<p>但是context接口并不需要我们手动创建，Golang中已经内置了2个：</p>
+<pre><code class="language-go">func Background() Context {
+	return background
+}
+
+func TODO() Context {
+	return todo
+}
+</code></pre>
+<p>这两个context返回值都是空的context，Background()一般用在main函数或者初始化的地方，作为根context；其他场景需要新建context接口就使用TODO()。</p>
+<p>context相关的还有四个衍生函数，可以根据context创建子context：</p>
+<pre><code class="language-go">func WithCancel(parent Context) (ctx Context, cancel CancelFunc)
+func WithDeadline(parent Context, deadline time.Time) (Context, CancelFunc)
+func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc)
+func WithValue(parent Context, key, val interface{}) Context
+</code></pre>
+<p>WithCancel函数是最常用的，传入父context，它会返回一个子context接口和一个用来通知取消子context的函数；<br>
+WithDeadline函数除了需要传入父context，还需要传入截止时间，也是返回一个子context接口和一个用来通知取消子context的函数，到了指定的截止时间会自动取消，我们也可以使用取消函数提前取消；<br>
+WithTimeout函数和WithDeadline函数类似，只是传入的是超时的时间，指多少时间后自动取消，而不是指定的时间点，即一个是时间长度，一个是时间点。<br>
+WithValue函数不是和取消相关的，而是通过context在goroutine之间传递一个key-value对，可以通过上面说的context.Value()方法获取。</p>
+<p>下面来看一下这些函数如何使用吧！</p>
+<h3 id="withcancel控制一个goroutine">WithCancel控制一个goroutine</h3>
+<pre><code class="language-go">func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	go func(ctx context.Context) {
+		for {
+			select {
+			case &lt;-ctx.Done():
+				fmt.Println(&quot;监控退出，停止了...&quot;)
+				return
+			default:
+				fmt.Println(&quot;goroutine监控中...&quot;)
+				time.Sleep(2 * time.Second)
+			}
+		}
+	}(ctx)
+
+	time.Sleep(10 * time.Second)
+	fmt.Println(&quot;可以了，通知监控停止&quot;)
+	cancel()
+	
+	time.Sleep(5 * time.Second)
+
+}
+</code></pre>
+<h3 id="withcancel控制多个goroutine">WithCancel控制多个goroutine</h3>
+<pre><code class="language-go">func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	for i := 0; i &lt; 10; i++ {
+		go watch(ctx, i)
+	}
+
+	time.Sleep(10 * time.Second)
+	fmt.Println(&quot;可以了，通知监控停止&quot;)
+	cancel()
+	//为了检测监控是否停止，如果没有监控输出，就表示停止了
+	time.Sleep(5 * time.Second)
+}
+
+func watch(ctx context.Context, i int) {
+	for {
+		select {
+		case &lt;-ctx.Done():
+			fmt.Println(i, &quot;监控退出，停止了...&quot;)
+			return
+		default:
+			fmt.Printf(&quot;goroutine %d监控中...\n&quot;, i)
+			time.Sleep(1 * time.Second)
+		}
+	}
+}
+</code></pre>
+<h3 id="withtimeout">WithTimeout</h3>
+<pre><code class="language-go">
+func process() {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	//释放资源
+	defer cancel()
+
+	ch := make(chan bool)
+
+	go func() {
+		time.Sleep(time.Second * 5)
+		// time.Sleep(time.Second * 1)
+		ch &lt;- true
+	}()
+
+	select {
+	case &lt;-ctx.Done():
+		fmt.Println(&quot;timeout!&quot;)
+	case &lt;-ch:
+		fmt.Println(&quot;chan closed.&quot;)
+	}
+
+}
+func main() {
+	process()
+}
+</code></pre>
+<h3 id="withdeadline">WithDeadline</h3>
+<pre><code class="language-go">func main() {
+	// d := time.Now().Add(4 * time.Second)
+	d := time.Now().Add(2 * time.Second)
+
+	ctx, cancel := context.WithDeadline(context.Background(), d)
+
+	defer cancel()
+
+	select {
+	case &lt;-time.After(3 * time.Second):
+		fmt.Println(&quot;overslept&quot;)
+	case &lt;-ctx.Done():
+		fmt.Println(ctx.Err())
+	}
+
+}
+</code></pre>
+<h3 id="withvalue传递key-value">WithValue传递key-value</h3>
+<pre><code class="language-go">package main
+
+import (
+	&quot;context&quot;
+	&quot;fmt&quot;
+	&quot;time&quot;
+)
+
+var key string = &quot;go-programming&quot;
+
+func main() {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	valCtx := context.WithValue(ctx, key, &quot;https://github.com/meetbetter/go-programming&quot;)
+
+	go watch(valCtx)
+	time.Sleep(time.Second * 5)
+	cancel()
+
+	time.Sleep(time.Second * 2)
+}
+
+func watch(ctx context.Context) {
+
+	for {
+		select {
+		case &lt;-ctx.Done():
+			fmt.Println(&quot;收到value：&quot;, ctx.Value(key))
+			return
+		default:
+			fmt.Println(&quot;github.com/meetbetter&quot;)
+			time.Sleep(time.Second * 1)
+		}
+	}
+
+}
+</code></pre>
+<p>使用context的原则：</p>
+<ol>
+<li>不要把Context放在结构体中传递，要直接以函数参数的方式传递</li>
+</ol>
+<blockquote>
+<p>有人说传递时形参必须叫ctx，实测叫其他名字也可以。</p>
+</blockquote>
+<ol start="2">
+<li>以Context作为参数的函数方法，应该把Context作为第一个参数，放在第一位。</li>
+<li>给一个函数方法传递Context的时候，不要传递nil，如果不知道传递什么，就使用context.TODO</li>
+<li>Context的Value相关方法应该传递必须的数据，不要什么数据都使用这个传递</li>
+<li>Context是线程安全的，可以放心的在多个goroutine中传递</li>
+</ol>
+<p>https://www.flysnow.org/2017/05/12/go-in-action-go-context.html<br>
+https://www.kancloud.cn/liupengjie/go/577494</p>
 ]]></content>
     </entry>
     <entry>
@@ -1471,56 +1727,6 @@ func test2() {
 </code></pre>
 <p>结果是：test1输出<code>Hello</code>，test2输出<code>World</code>。可能test2输出<code>World</code>还好理解，因为相当于m中指向的内容被<code>m.set(&quot;World&quot;)</code>更改了;那么test1为什么输出<code>Hello</code>呢？这时因为调用print等输出函数时会先计算出结果，即使你后面再改变变量值对print也没有影响了。</p>
 <p>以下所有代码均在整理在<a href="https://github.com/meetbetter/go-programming">github go programming</a>。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Go slice：切片的“陷阱”和本质]]></title>
-        <id>https://meetbetter.github.io/post/go-sliceqie-pian-de-xian-jing-he-ben-zhi</id>
-        <link href="https://meetbetter.github.io/post/go-sliceqie-pian-de-xian-jing-he-ben-zhi">
-        </link>
-        <updated>2018-04-26T03:59:34.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="文章说明">文章说明</h1>
-<p>总结了go语言中切片slice的特殊性和使用时的注意事项。</p>
-<p>个人理解，不足之处欢迎指出。</p>
-<p>slice：切片，是go语言中一种常用的数据结构，基于数组构建，表示相同数据类型的集合。</p>
-<h1 id="数组">数组</h1>
-<p>Go中数组类型表示固定长度的相同类型的数据的集合，数据在内存中连续存储，可以通过下标索引，但是又有特殊的地方：</p>
-<ul>
-<li>数组是值类型，一个数组变量表示整个数组，而不是指向数组的首元素的指针，这和C语言不同。</li>
-<li>将数组赋值给另一个数组，或者数组作函数参数传递时，会将数组的全部数据拷贝一份过去而不是传递一个指针。</li>
-<li>数组类型包括长度，即[5]int和[10]不是一种类型。</li>
-</ul>
-<p>所以Go语言中使用数组传递数据效率很低，通常使用切片。</p>
-<h1 id="切片">切片</h1>
-<p>切片是一个数组片段的描述，包含了指向数组片段的指针，片段的长度len和容量cap（数组片段的最大长度），但是<strong>切片本身并不是真正的指针类型</strong>。</p>
-<h2 id="切片的特性">切片的特性</h2>
-<ol>
-<li>可以自动扩容<br>
-使用append()向切片<strong>追加</strong>数据，数据是被添加到切片指向的片段末尾，长度等于容量时切片就会自动扩容，扩容的细节后面的文章再讨论。</li>
-<li>切片之间赋值或者切片作函数参数传递时，是将指向数组片段的指针传递过去，所以改变一个会影响另一个。</li>
-</ol>
-<h2 id="切片的陷阱">切片的陷阱</h2>
-<p>切片作函数参数传递或浅拷贝时，之所以改变一个切片的数据会影响另一个切片，是因为两个切片中中包含了指向同一数组片段的指针。</p>
-<p>一切看似正常？但是当一个切片发生扩容时，会将当前切片内的数据复制到另一片内存区域，该切片的数组片段的地址发生改变，所以当切片扩容时修改一个切片的数据时不会再影响到另一个切片！此时只能通过传递切片本身的地址来解决。</p>
-<p>扩容时出错的代码如下：</p>
-<pre><code>package main
-
-import &quot;fmt&quot;
-
-func testSlice(slice []int) {
-slice = append(slice, 6, 7, 8, 9, 10)
-fmt.Println(&quot;testSlice:&quot;,slice)
-}
-func main() {
-slice := []int{1, 2, 3, 4, 5}
-
-	testSlice(slice)
-fmt.Println(&quot;main:&quot;,slice)
-}
-</code></pre>
-<h1 id="切片的本质">切片的本质</h1>
-<p>可以证明，<strong>切片不是指针类型，切片数据类型是包含指向一个数组片段的指针，和当前数组片段的长度，以及当前数组最大容量的一种复合数据结构</strong>。</p>
-<p>想深入了解Go中slice数据类型的底层实现，可以参考本人的Github<a href="https://github.com/meetbetter/learn-golang/blob/master/02_advance/01_data_structure/01-slice.go">自己动手实现Go切片数据结构</a></p>
 ]]></content>
     </entry>
 </feed>
