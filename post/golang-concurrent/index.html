@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1565949986490">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1565961201066">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1565949986490" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1565961201066" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -106,9 +106,7 @@
             <div class="post-date">2019-02-16</div>
             
             <div class="post-content">
-              <p><a href="https://www.flysnow.org/2017/05/12/go-in-action-go-context.html">飞雪无情</a><br>
-<a href="https://www.kancloud.cn/liupengjie/go/577494">参考总结</a></p>
-<p>大家经常说“Go语言是为了并发而生”、“Go语言是高并发时代的C语言”，这是因为Go通过goroutine（go中的协程）实现语言层面支持并发，每个goroutine默认只需要8KB的堆栈空间，并且有强大的<a href="https://bettertxt.top/post/golang-scheduler/">Go调度器</a>，所以我们可以轻松开启上万个goroutine。那如果我们需要某些goroutine按照一定的逻辑顺序执行和结束，这么多goroutine如何控制呢？<br>
+              <p>大家经常说“Go语言是为了并发而生”、“Go语言是高并发时代的C语言”，这是因为Go通过goroutine（go中的协程）实现语言层面支持并发，每个goroutine默认只需要8KB的堆栈空间，并且有强大的<a href="https://bettertxt.top/post/golang-scheduler/">Go调度器</a>，所以我们可以轻松开启上万个goroutine。那如果我们需要某些goroutine按照一定的逻辑顺序执行和结束，这么多goroutine如何控制呢？<br>
 下面就介绍Go中控制并发的三种方式：channel、WaitGroup和context。</p>
 <blockquote>
 <p>文中所有代码均在Github[跟着示例代码学golang项目]https://github.com/meetbetter/go-programming)中，持续更新中。</p>
@@ -170,7 +168,44 @@ Wait:执行阻塞，直到所有的WaitGroup数量变成0。</p>
 <h1 id="context">context</h1>
 <p>但是如果一组goroutine中又创建了很多的goroutine，甚至新的goroutine又创建了很多goroutine，一层层的嵌套下去，这个时候channel和WaitGroup都无能为力了。为了控制这种场景下的goroutine，我们需要使用context跟踪并控制他们。<br>
 context中文译作上下文，用在这儿非常贴切，利用goroutine的上下文关系来控制他们结束。</p>
-<h2 id="withcancel控制一个goroutine">WithCancel控制一个goroutine</h2>
+<h2 id="context接口及使用">context接口及使用</h2>
+<p>context接口的定义如下：</p>
+<pre><code class="language-go">type Context interface {
+	Deadline() (deadline time.Time, ok bool)
+
+	Done() &lt;-chan struct{}
+
+	Err() error
+
+	Value(key interface{}) interface{}
+}
+</code></pre>
+<p>其中Deadline() 是获取设置的截止时间，下面会介绍截止时间如何设置，如果返回值ok==false表示没有设置截至时间，想要取消就需要通过context；<br>
+Done()方法返回的是一个channel，平时阻塞不可读，当可读时说明外部已经发起了取消请求，Done()所在goroutine就可以进行资源回收并结束；<br>
+Err()返回接口context取消的原因；<br>
+Value(key interface{}) interface{}是获取context中key对应的值。</p>
+<p>但是context接口并不需要我们手动创建，Golang中已经内置了2个：</p>
+<pre><code class="language-go">func Background() Context {
+	return background
+}
+
+func TODO() Context {
+	return todo
+}
+</code></pre>
+<p>这两个context返回值都是空的context，Background()一般用在main函数或者初始化的地方，作为根context；其他场景需要新建context接口就使用TODO()。</p>
+<p>context相关的还有四个衍生函数，可以根据context创建子context：</p>
+<pre><code class="language-go">func WithCancel(parent Context) (ctx Context, cancel CancelFunc)
+func WithDeadline(parent Context, deadline time.Time) (Context, CancelFunc)
+func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc)
+func WithValue(parent Context, key, val interface{}) Context
+</code></pre>
+<p>WithCancel函数是最常用的，传入父context，它会返回一个子context接口和一个用来通知取消子context的函数；<br>
+WithDeadline函数除了需要传入父context，还需要传入截止时间，也是返回一个子context接口和一个用来通知取消子context的函数，到了指定的截止时间会自动取消，我们也可以使用取消函数提前取消；<br>
+WithTimeout函数和WithDeadline函数类似，只是传入的是超时的时间，指多少时间后自动取消，而不是指定的时间点，即一个是时间长度，一个是时间点。<br>
+WithValue函数不是和取消相关的，而是通过context在goroutine之间传递一个key-value对，可以通过上面说的context.Value()方法获取。</p>
+<p>下面来看一下这些函数如何使用吧！</p>
+<h3 id="withcancel控制一个goroutine">WithCancel控制一个goroutine</h3>
 <pre><code class="language-go">func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
@@ -189,12 +224,12 @@ context中文译作上下文，用在这儿非常贴切，利用goroutine的上�
 	time.Sleep(10 * time.Second)
 	fmt.Println(&quot;可以了，通知监控停止&quot;)
 	cancel()
-	//为了检测监控是否停止，如果没有监控输出，就表示停止了
+	
 	time.Sleep(5 * time.Second)
 
 }
 </code></pre>
-<h2 id="withcancel控制多个goroutine">WithCancel控制多个goroutine</h2>
+<h3 id="withcancel控制多个goroutine">WithCancel控制多个goroutine</h3>
 <pre><code class="language-go">func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	for i := 0; i &lt; 10; i++ {
@@ -221,19 +256,104 @@ func watch(ctx context.Context, i int) {
 	}
 }
 </code></pre>
-<h2 id="withtimeout">WithTimeout</h2>
-<h2 id="withdeadline">WithDeadline</h2>
-<p>注意: 使用时遵循context规则</p>
+<h3 id="withtimeout">WithTimeout</h3>
+<pre><code class="language-go">
+func process() {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	//释放资源
+	defer cancel()
+
+	ch := make(chan bool)
+
+	go func() {
+		time.Sleep(time.Second * 5)
+		// time.Sleep(time.Second * 1)
+		ch &lt;- true
+	}()
+
+	select {
+	case &lt;-ctx.Done():
+		fmt.Println(&quot;timeout!&quot;)
+	case &lt;-ch:
+		fmt.Println(&quot;chan closed.&quot;)
+	}
+
+}
+func main() {
+	process()
+}
+</code></pre>
+<h3 id="withdeadline">WithDeadline</h3>
+<pre><code class="language-go">func main() {
+	// d := time.Now().Add(4 * time.Second)
+	d := time.Now().Add(2 * time.Second)
+
+	ctx, cancel := context.WithDeadline(context.Background(), d)
+
+	defer cancel()
+
+	select {
+	case &lt;-time.After(3 * time.Second):
+		fmt.Println(&quot;overslept&quot;)
+	case &lt;-ctx.Done():
+		fmt.Println(ctx.Err())
+	}
+
+}
+</code></pre>
+<h3 id="withvalue传递key-value">WithValue传递key-value</h3>
+<pre><code class="language-go">package main
+
+import (
+	&quot;context&quot;
+	&quot;fmt&quot;
+	&quot;time&quot;
+)
+
+var key string = &quot;go-programming&quot;
+
+func main() {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	valCtx := context.WithValue(ctx, key, &quot;https://github.com/meetbetter/go-programming&quot;)
+
+	go watch(valCtx)
+	time.Sleep(time.Second * 5)
+	cancel()
+
+	time.Sleep(time.Second * 2)
+}
+
+func watch(ctx context.Context) {
+
+	for {
+		select {
+		case &lt;-ctx.Done():
+			fmt.Println(&quot;收到value：&quot;, ctx.Value(key))
+			return
+		default:
+			fmt.Println(&quot;github.com/meetbetter&quot;)
+			time.Sleep(time.Second * 1)
+		}
+	}
+
+}
+</code></pre>
+<p>使用context的原则：</p>
 <ol>
-<li>不要将 Context 放入结构体，Context应该作为第一个参数传<br>
-入，命名为ctx。</li>
-<li>即使函数允许，也不要传入nil的 Context。如果不知道用哪种<br>
-Context，可以使用context.TODO()。</li>
-<li>使用context的Value相关方法,只应该用于在程序和接口中传递<br>
-和请求相关数据，不能用它来传递一些可选的参数</li>
-<li>相同的 Context 可以传递给在不同的goroutine；Context 是<br>
-并发安全的。</li>
+<li>不要把Context放在结构体中传递，要直接以函数参数的方式传递</li>
 </ol>
+<blockquote>
+<p>有人说传递时形参必须叫ctx，实测叫其他名字也可以。</p>
+</blockquote>
+<ol start="2">
+<li>以Context作为参数的函数方法，应该把Context作为第一个参数，放在第一位。</li>
+<li>给一个函数方法传递Context的时候，不要传递nil，如果不知道传递什么，就使用context.TODO</li>
+<li>Context的Value相关方法应该传递必须的数据，不要什么数据都使用这个传递</li>
+<li>Context是线程安全的，可以放心的在多个goroutine中传递</li>
+</ol>
+<p>https://www.flysnow.org/2017/05/12/go-in-action-go-context.html<br>
+https://www.kancloud.cn/liupengjie/go/577494</p>
 
             </div>
             
