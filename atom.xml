@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-08-16T14:36:56.630Z</updated>
+    <updated>2019-08-17T02:39:36.990Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -21,123 +21,216 @@
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Golang protobuf快速上手]]></title>
-        <id>https://meetbetter.github.io/post/golang-protobuf-learning</id>
-        <link href="https://meetbetter.github.io/post/golang-protobuf-learning">
+        <title type="html"><![CDATA[Golang map底层实现]]></title>
+        <id>https://meetbetter.github.io/post/go-map</id>
+        <link href="https://meetbetter.github.io/post/go-map">
         </link>
-        <updated>2019-03-20T08:08:07.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="说明">说明</h1>
-<p><a href="https://github.com/meetbetter/protocol-buffer-demo">Demo源码</a></p>
-<p>protocol buffer是谷歌推出的高效率序列化反序列化工具，可以自定义数据结构，然后使用对应语言的代码生成器生成的代码读写这个数据结构。虽然在和前端打交道时还是要配合使用JSON，但是在其他场合可以尝试使用protocol buffer改进性能。</p>
-<p>下面总结下在GoLang中使用protocol buffer的方法。</p>
-<h1 id="go环境配置">Go环境配置</h1>
-<h2 id="下载protobuf">下载protobuf</h2>
-<pre><code class="language-shell">git clone https://github.com/protocolbuffers/protobuf.git
-</code></pre>
-<h2 id="安装linux-ubuntu">安装(Linux Ubuntu)</h2>
-<h3 id="1安装依赖工具">(1)安装依赖工具</h3>
-<pre><code class="language-shell">sudo apt-get install autoconf automake libtool curl make g++ unzip libffi-dev -y
-</code></pre>
-<h3 id="2进入protobuf文件">(2)进入protobuf文件</h3>
-<pre><code class="language-shell">cd protobuf/
-</code></pre>
-<h3 id="3进行安装检测-并生成自动安装脚本">(3)进行安装检测 并生成自动安装脚本</h3>
-<pre><code class="language-shell">./autogen.sh
-./configure
-</code></pre>
-<h3 id="4进行编译c代码和安装">(4)进行编译C代码和安装</h3>
-<pre><code class="language-shell">make
-sudo make install
-</code></pre>
-<h3 id="5刷新linux共享库关系">(5)刷新linux共享库关系</h3>
-<pre><code class="language-shell">sudo ldconfig
-</code></pre>
-<h3 id="6测试protobuf编译工具">(6)测试protobuf编译工具</h3>
-<pre><code class="language-shell">protoc -h
-</code></pre>
-<p>如果正常输出 相关指令 没有报任何error，为安装成功。</p>
-<h2 id="获取-golang的proto包">获取 GoLang的proto包</h2>
-<h3 id="1下载">(1)下载</h3>
-<pre><code class="language-shell">go get -v -u github.com/golang/protobuf/proto
-</code></pre>
-<h3 id="2进入到文件夹内进行编译">(2)进入到文件夹内进行编译</h3>
-<pre><code class="language-shell">cd $GOPATH/src/github.com/golang/protobuf/protoc-gen-go/
-go build
-</code></pre>
-<h3 id="3拷贝可执行文件">(3)拷贝可执行文件</h3>
-<p>将生成的 protoc-gen-go可执行文件，放在/bin目录下。</p>
-<pre><code class="language-shell">sudo cp protoc-gen-go /bin/
-</code></pre>
-<p>尝试补齐protoc-gen-go 如果可以补齐代表成功，如果执行不报错 代表工具成功。</p>
-<h1 id="go使用protobuf">Go使用protobuf</h1>
-<h2 id="新建proto文件">新建.proto文件</h2>
-<p>基本格式如下：</p>
-<pre><code class="language-protobuf">syntax = &quot;proto3&quot;; //必须指定protobuf协议版本号
-package pb; //包名
+        <updated>2019-02-26T13:46:28.000Z</updated>
+        <content type="html"><![CDATA[<p>首先否定两个错误说法：“map高效率是因为map是链式结构存储”，“map的无序是因为map是散列表”。这是之前听到的说法，后来深入学习了golang map的底层实现后，发现这些说法是很错误的，现在将自己学习map的心得整理出来，欢迎指正。</p>
+<h1 id="map的底层实现">map的底层实现</h1>
+<p>粗略的讲，Go语言中map采用的是哈希查找表，由一个key通过哈希函数得到哈希值，64位系统中就生成一个64bit的哈希值，由这个哈希值将key对应到不同的桶（bucket）中，当有多个哈希映射到相同的的桶中时，使用链表解决哈希冲突。<br>
+详细的说，就涉及到map的数据结构哈希函数，hmap，bmap。</p>
+<h2 id="hash函数">hash函数</h2>
+<p>首先要知道的就是map中哈希函数的作用，go中map使用hash作查找，就是将key作哈希运算，得到一个哈希值，根据哈希值确定key-value落在哪个bucket的哪个cell。golang使用的hash算法和CPU有关，如果cpu支持aes，那么使用aes hash，否则使用memhash。</p>
+<h2 id="map的数据结构">map的数据结构</h2>
+<h3 id="hmap">hmap</h3>
+<p>hmap可以理解为 header of map的缩写，即map数据结构的入口。<br>
+map的数据结构定义在<code>runtime/map.go/hmap</code>中，以下注释来自<a href="https://github.com/cch123/golang-notes/blob/master/map.md">曹大Github map源码分析</a>，我修改了部分注释使之更直白：</p>
+<pre><code class="language-go">// header of map
+type hmap struct {
+    count     int // map 中的元素个数，必须放在 struct 的第一个位置，因为 内置的 len 函数会从这里读取
+    flags     uint8 //map状态标识，比如是否在被写或者迁移等，因为map不是线程安全的所以操作时需要判断flags
+    B         uint8  // log_2 of # of buckets (最多可以放 loadFactor * 2^B 个元素即6.5*2^B，再多就要 hashGrow 了)
+    noverflow uint16 // overflow 的 bucket 的近似数
+    hash0     uint32 // hash seed，随机哈希种子可以防止哈希碰撞攻击
 
-//定义一个protobuf协议
-message Person {
-    string name = 1; //数字表示序号，并不是变量值.
-    int32 age = 2;
-    repeated string hobby = 3; //对应go中[]string
+    buckets    unsafe.Pointer // 存储数据的buckets数组的指针， 大小2^B，如果 count == 0 的话，可能是 nil
+    oldbuckets unsafe.Pointer // 一半大小的之前的 bucket 数组，只有在 growing 过程中是非 nil
+    nevacuate  uintptr        // 扩容进度标志，小于此地址的buckets已迁移完成。
 
+    extra *mapextra // 可以减少GC扫描，当 key 和 value 都可以 inline 的时候，就会用这个字段
 }
 </code></pre>
-<h2 id="生成go数据结构">生成Go数据结构</h2>
-<p>在.proto所在目录执行如下命令，</p>
-<pre><code class="language-shell">protoc --go_out=.  *.proto
-</code></pre>
-<p>在当前目录下会生成对应的.go文件，可以在其中找到go的数据结构，</p>
-<pre><code class="language-go">type Person struct {
-	Name                 string   `protobuf:&quot;bytes,1,opt,name=name,proto3&quot; json:&quot;name,omitempty&quot;`
-	Age                  int32    `protobuf:&quot;varint,2,opt,name=age,proto3&quot; json:&quot;age,omitempty&quot;`
-	Hobby                []string `protobuf:&quot;bytes,3,rep,name=hobby,proto3&quot; json:&quot;hobby,omitempty&quot;`
-	XXX_NoUnkeyedLiteral struct{} `json:&quot;-&quot;`
-	XXX_unrecognized     []byte   `json:&quot;-&quot;`
-	XXX_sizecache        int32    `json:&quot;-&quot;`
+<p>根据注释可以看出各个字段的作用，需要重点说明的是最后一个字段<code>extra *mapextra</code>，针对key和value都不是指针类型的map，并且大小都小于128字节，则使用mapextra来存储，这样可以避免GC扫描整个map。</p>
+<pre><code class="language-go">type mapextra struct {
+    // 如果 key 和 value 都不包含指针，并且可以被 inline(&lt;=128 字节)
+    // 使用 extra 来存储 overflow bucket，这样可以避免 GC 扫描整个 map
+    // 然而 bmap.overflow 也是个指针。这时候我们只能把这些 overflow 的指针
+    // 都放在 hmap.extra.overflow 和 hmap.extra.oldoverflow 中了
+    // overflow 包含的是 hmap.buckets 的 overflow 的 bucket
+    // oldoverflow 包含扩容时的 hmap.oldbuckets 的 overflow 的 bucket
+    overflow    *[]*bmap
+    oldoverflow *[]*bmap
+
+    // 指向空闲的 overflow bucket 的指针
+    nextOverflow *bmap
 }
 </code></pre>
-<p><strong>注意</strong>，该文件只能生成不能手动修改。</p>
-<h2 id="使用protobuf">使用protobuf</h2>
-<p>在main函数中新建Person对象并进行序列化和反序列化，</p>
+<h3 id="bmap">bmap</h3>
+<p>bmap可以理解为buckets of map的缩写，她就是map中bucket的本体，即存key和value数据的“桶”。</p>
+<pre><code class="language-go">type bmap struct {
+    // tophash 是 hash 值的高 8 位
+    tophash [bucketCnt]uint8
+		//以下字段没有显示定义在bmap，但是编译时编译器会自动添加
+    // keys //每个桶最多可以装8个key
+    // values //8个key分别有8个value一一对应
+    // overflow pointer  //发生哈希碰撞之后创建的overflow bucket
+}
+</code></pre>
+<p>根据哈希函数将key生成一个哈希值，其中低位哈希用来判断桶位置，高位哈希用来确定在桶中哪个cell。<strong>低位哈希</strong>就是哈希值的低B位，hmap结构体中的B，比如B为5，2^5=32，即该map有32个桶，只需要取哈希值的低5位就可以确定当前key-value落在哪个桶(bucket)中；<strong>高位哈希</strong>即tophash，是指哈希值的高8bits，根据tophash来确定key在桶中的位置。每个桶可以存储8对key-value，存储结构不是key/value/key/value...，而是key/key..value/value，这样可以避免字节对时的padding，节省内存空间。</p>
+<p>仔细想一下，当不同的key根据哈希得到的tophash和低位hash都一样岂不是会覆盖原来的key-value数据？这种情况有个专业名词叫“哈希碰撞”，这个时候就体现<code>overflow pointer</code>字段的作用了。当某一个key根据自己的哈希值找到对应的bucket和key位置时，发现这个位置已经名花有主，即桶溢出了，就需要存储在overflow bucket（溢出桶），overflow pointer就是指向overflow bucket的指针。如果overflow bucket也溢出了呢？那就再给overflow bucket新建一个overflow bucket，用指针串起来就形成了链式结构，所以开头所说的“map是链式存储并不准确”，map本身有2^B个bucket，只有当发生哈希碰撞后才会在bucket后链式增加overflow bucket。</p>
+<h2 id="map内存布局">map内存布局</h2>
+<p>通过上面我们可以想象map在内存中的布局情况：<br>
+一个map对应着多个buckets，每个bucket后面又因为哈希碰撞而存在数量不定的overflow bucket。<br>
+<img src="https://meetbetter.github.io/post-images/1564210141673.png" alt=""></p>
+<h2 id="扩容">扩容</h2>
+<p>再仔细想一下，如果overflow bucket一直链式增加，但是并不是每个bucket的8个cell都是满的，那map的高效率还能保证吗？<br>
+这就需要用到map的扩容机制了，当向map插入数据时，会判断是否满足以下两个条件之一：</p>
+<ol>
+<li>装载因子是否大于6.5</li>
+</ol>
+<blockquote>
+<p>装载因子 = 元素个数/桶个数，大于6.5时说明大部分桶已经要装满，需要扩容。</p>
+</blockquote>
+<ol start="2">
+<li>overflow bucket是否太多。</li>
+</ol>
+<blockquote>
+<p>当 bucket数量 &lt; 2^15时，如果overflow bucket数量大于bucket数量，则说明overflow bucket数量太多了；<br>
+当bucket数量 &gt;= 2^15时，如果overflow bucket数量大于2^15，则说明overflow bucket数量太多了；<br>
+overflow bucket桶太多说明有很多cell空闲，查找效率就会变低。曹大文章里说导致这种情况的原因是map一遍插入一边删除，但map不是线程安全的，一遍插入一边删除会导致panic，所以我的理解不是同时插入，而是先往map中插入了大量哈希值高低位相同的key，导致overflow bucket数量很多，再删除一些数据，这时装载因子并未大于6.5，但却有大量的overflow bucket，这就造成很多bucke的cell空着，却有大量的overflow bucket，从而降低查询效率。</p>
+</blockquote>
+<p>两种触发条件的适用的场景不一致，扩容方法也不一致。针对第一种装载因子过大的情况，只需要bucket数量增加一倍，即B+1，这称为“双倍扩容”。针对第二种overflow太多的情况，使用的方法是重新排列键值对使之排列更紧密，减少overflow bucket，bucket总数未改变，这称为“等量扩容”。</p>
+<blockquote>
+<p>但是在极端情况下，比如插入了大量的哈希值高低位相同的key，第二种方法也无能为力，为了解决哈希碰撞不得不使用overflow bucket，此时map变成了链式存储，查询和插入效率就会变低，hmap中的hash0字段是makemap时的rand seed，可以降低这种极端情况的发生 。</p>
+</blockquote>
+<p>在第一种情况下，B+1之后，根据key的哈希值低B位查找落在哪个桶也需要加一，即向前多取一位哈希值来当作新的低哈希，所以数据搬移后原来的key可能落在其他桶中，取决于向前取的这一位是0还是1。<br>
+另外，map的扩容是渐进式的扩容，并不是一次性将原bucket的数据搬移到新的地址，这样未免太占用CPU了，而是在每一次访问旧buckets时就搬移一部分，直到全部搬移完成，旧的buckets被GC回收。</p>
+<h2 id="查找过程">查找过程</h2>
+<p>通过上面的介绍可以直到map的查找过程：</p>
+<ol>
+<li>根据key计算出哈希值</li>
+<li>根据哈希值低位确定所在bucket</li>
+<li>根据哈希值高8位确定在bucket中的存储位置</li>
+<li>当前bucket未找到则查找对应的overflow bucket。</li>
+<li>对应位置有数据则对比完整的哈希值，确定是否是要查找的数据</li>
+<li>如果当前处于map进行了扩容，处于数据搬移状态，则优先从oldbuckets查找。</li>
+</ol>
+<p>先用哈希值高低位确定位置再对比完整哈希值的方法提高了查找效率。<br>
+另外要注意：查找不到也不会返回空值，而是返回对应数据类型的零值，所以我们判断map中某个key是否存在时要接收两个返回值，如 <code>data,ok := m[&quot;hahaha&quot;]</code>，第二个返回值为bool类型，标识查询的数据是否存在。</p>
+<h2 id="插入过程">插入过程</h2>
+<p>删除map数据的过程是先查找再删除：</p>
+<ol>
+<li>根据key计算出哈希值</li>
+<li>根据哈希值低位确定所在bucket</li>
+<li>根据哈希值高8位确定在bucket中的存储位置</li>
+<li>查找该key是否存在，已存在则更新，不存在则插入</li>
+</ol>
+<h1 id="map无序的原因">map无序的原因</h1>
+<p>看完上面的内容，可以理解“map高效率是因为map是链式结构存储”是错误的说法了吧，那为什么“map的无序是因为map是散列表”也是错误的呢？之前在网上看到说因为map是哈希的，所以遍历出来是无序的。其实map无序和哈希无关，而是<strong>Go map遍历出的结果是随机的是因为Go设计者故意这样做的</strong>。<br>
+分析如下：<br>
+通过上面的学习已经知道，map的本质是散列表，而map的增长扩容会导致重新进行散列，这就可能使map的遍历结果在扩容前后变得不可靠，Go设计者为了让大家不依赖遍历的顺序，故意在实现map遍历时加入了随机数，让每次遍历的起点--即起始bucket的位置--不一样，即不让遍历都从bucket0开始，所以即使未扩容时我们遍历出来的map也总是无序的(<em><sup>_</sup></em>)。<br>
+看一下runtime.mapiterinit源码：</p>
+<pre><code class="language-go">func mapiterinit(t *maptype, h *hmap, it *hiter) {
+    ...
+    it.t = t
+    it.h = h
+    it.B = h.B
+    it.buckets = h.buckets
+    if t.bucket.kind&amp;kindNoPointers != 0 {
+        h.createOverflow()
+        it.overflow = h.extra.overflow
+        it.oldoverflow = h.extra.oldoverflow
+    }
+
+    r := uintptr(fastrand())
+    if h.B &gt; 31-bucketCntBits {
+        r += uintptr(fastrand()) &lt;&lt; 31
+    }
+    it.startBucket = r &amp; bucketMask(h.B)
+    it.offset = uint8(r &gt;&gt; h.B &amp; (bucketCnt - 1))
+    it.bucket = it.startBucket
+    ...
+
+    mapiternext(it)
+}
+</code></pre>
+<p>这个函数是map遍历前的初始化操作，注意看<code>fastrand())</code>，根据名字也可以猜出它的作用了吧，就是<code>fastrand())</code>生成随机数让每次遍历的起始位置不停变化。<br>
+个人猜测不同CPU下哈希函数的选择可能不同也是促使go设计者这样做的原因之一。</p>
+<h2 id="让map变有序的方法">让map变有序的方法</h2>
+<p>如果想让map遍历结果变得有序，可以自己对map的key进行依次排序，实现如下：</p>
 <pre><code class="language-go">package main
 
 import (
-	&quot;protobufDemo/pb&quot;
-	&quot;github.com/golang/protobuf/proto&quot;
 	&quot;fmt&quot;
+	&quot;sort&quot;
 )
 
 func main() {
+	m := make(map[string]string)
+	m[&quot;111&quot;] = &quot;1111&quot;
+	m[&quot;222&quot;] = &quot;2222&quot;
+	m[&quot;333&quot;] = &quot;3333&quot;
+	m[&quot;444&quot;] = &quot;4444&quot;
+	m[&quot;555&quot;] = &quot;5555&quot;
 
-	//序列化
-	person := &amp;pb.Person{
-		Name:&quot;Jack&quot;,
-		Age:18,
-		Hobby:[]string{&quot;sing&quot;,&quot;dance&quot;,&quot;basketball&quot;,&quot;rap&quot;},
+	sorted_keys := make([]string, 0)
+	for k, _ := range m {
+		sorted_keys = append(sorted_keys, k)
 	}
 
-	binaryData, err := proto.Marshal(person)
-	if err != nil {
-		fmt.Println(&quot;proto.Marshal err:&quot;,err)
-	}
+	// sort 'string' key in increasing order
+	sort.Strings(sorted_keys)
 
-	//反序列化
-	newPerson := &amp;pb.Person{}
-	err = proto.Unmarshal(binaryData,newPerson)
-	if err != nil {
-		fmt.Println(&quot;proto.Unmarshal err:&quot;,err)
+	for _, k := range sorted_keys {
+		fmt.Printf(&quot;k=%v, v=%v\n&quot;, k, m[k])
 	}
-
-	fmt.Println(&quot;序列化前的原始数据:&quot;,person)
-	fmt.Println(&quot;反序列化得到数据:&quot;,newPerson)
 }
+</code></pre>
+<p>至此相信你对Golang map的底层实现有个大概认知了吧，最后再说一句，go中只有值传递，map和channel可以在函数内影响函数外是因为他们make创建时就是返回的对应指针：</p>
+<pre><code class="language-go">func makemap(t *maptype, hint int, h *hmap) *hmap {
+    // 在 64 位系统上 hmap 结构体大小为 48 字节
+    // 32 位系统上是 28 字节
+    if sz := unsafe.Sizeof(hmap{}); sz != 8+5*sys.PtrSize {
+        println(&quot;runtime: sizeof(hmap) =&quot;, sz, &quot;, t.hmap.size =&quot;, t.hmap.size)
+        throw(&quot;bad hmap size&quot;)
+    }
 
+    if hint &lt; 0 || hint &gt; int(maxSliceCap(t.bucket.size)) {
+        hint = 0
+    }
+
+    // 初始化 hmap
+    if h == nil {
+        h = (*hmap)(newobject(t.hmap))
+    }
+    h.hash0 = fastrand()
+
+    // 按照提供的元素个数，找一个可以放得下这么多元素的 B 值
+    B := uint8(0)
+    for overLoadFactor(hint, B) {
+        B++
+    }
+    h.B = B
+
+    // 分配初始的 hash table
+    // 如果 B == 0，buckets 字段会由 mapassign 来 lazily 分配
+    // 因为如果 hint 很大的话，对这部分内存归零会花比较长时间
+    if h.B != 0 {
+        var nextOverflow *bmap
+        h.buckets, nextOverflow = makeBucketArray(t, h.B)
+        if nextOverflow != nil {
+            h.extra = new(mapextra)
+            h.extra.nextOverflow = nextOverflow
+        }
+    }
+
+    return h
+}
 </code></pre>
-<p>执行后可以看到person和newPerson都喜欢<strong>唱、跳、篮球和rap</strong>。</p>
-<pre><code class="language-shell">序列化前的原始数据: name:&quot;Jack&quot; age:18 hobby:&quot;sing&quot; hobby:&quot;dance&quot; hobby:&quot;basketball&quot; hobby:&quot;rap&quot; 
-反序列化得到数据: name:&quot;Jack&quot; age:18 hobby:&quot;sing&quot; hobby:&quot;dance&quot; hobby:&quot;basketball&quot; hobby:&quot;rap&quot;
-</code></pre>
+<p>参考资料：<br>
+<a href="https://github.com/cch123/golang-notes/blob/master/map.md">曹大map源码分析</a><br>
+<a href="https://www.jianshu.com/p/aa0d4808cbb8">Golang map 的底层实现</a></p>
 ]]></content>
     </entry>
     <entry>
@@ -684,6 +777,427 @@ Go 语⾔如果发现扫描后回收的速度跟不上分配的速度它依然�
 ]]></content>
     </entry>
     <entry>
+        <title type="html"><![CDATA[Go RPC对比和示例]]></title>
+        <id>https://meetbetter.github.io/post/go-rpc-learning</id>
+        <link href="https://meetbetter.github.io/post/go-rpc-learning">
+        </link>
+        <updated>2018-11-29T08:14:22.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="说明">说明</h1>
+<p>做项目中发现自己对很多东西的理解有偏差，所以决定做个总结，也分享给需要的朋友。如有错误和遗漏，欢迎沟通交流。</p>
+<p><a href="https://github.com/meetbetter/gRPC-Demo">GitHub示例源码</a></p>
+<p>本文介绍了Go中原生和第三方RPC使用方法，环境搭建方法并提供了材料。</p>
+<h1 id="rpc">RPC</h1>
+<p>远程过程调用(Remote Procedure Call)，通俗的说，RPC可以实现跨机器、跨语言调用其他计算机的程序。举个例子，我在机器A上用C语言封装了某个功能的函数，我可以通过RPC在机器B上用GO语言调用机器A上的指定函数。<br>
+RPC为C/S模型，通常使用TCP或http协议。</p>
+<h1 id="golang官方rpc">Golang官方RPC</h1>
+<p>go RPC可以利用tcp或http来传递数据，可以对要传递的数据使用多种类型的编解码方式。</p>
+<h2 id="netrpc库">net/rpc库</h2>
+<p>Golang官方的net/rpc库可以通过tcp或http传递数据，但net/rpc库使用encoding/gob进行编解码，支持tcp或http数据传输方式，由于其他语言不支持gob编解码方式，所以使用net/rpc库实现的RPC方法没办法进行跨语言调用。</p>
+<h3 id="server端代码">server端代码</h3>
+<pre><code class="language-go">package main
+
+import (
+	&quot;net/rpc&quot;
+	&quot;net&quot;
+	&quot;fmt&quot;
+	&quot;net/http&quot;
+)
+
+type Chen struct {
+}
+
+//rcp方法
+//func (t *T) MethodName(argType T1, replyType *T2) error
+func (this *Chen) GetAdd(data int, sum *int) error {
+
+	*sum = data + 100
+
+	return nil
+}
+
+func main() {
+	//1.对象实例化
+	pd := new(Chen)
+	//2. rpc注册
+	rpc.Register(pd)
+	//3. rpc网络
+	rpc.HandleHTTP()
+	//4. 监听网络
+	ln, err := net.Listen(&quot;tcp&quot;, &quot;127.0.0.1:12306&quot;)
+	if err != nil {
+		fmt.Println(&quot;net.Listen error:&quot;, err)
+		return
+	}
+	//5. 等待连接
+	http.Serve(ln, nil)
+}
+</code></pre>
+<h3 id="client代码">client代码</h3>
+<pre><code class="language-go">package main
+
+import (
+	&quot;net/rpc&quot;
+	&quot;fmt&quot;
+)
+
+func main() {
+	//1. 连接服务器
+	cln, err := rpc.DialHTTP(&quot;tcp&quot;, &quot;127.0.0.1:12306&quot;)
+	if err != nil {
+		fmt.Println(&quot;rpc.Dial error:&quot;, err)
+		return
+	}
+	defer cln.Close()
+
+	//2. 调用服务器函数
+	var data int
+	err = cln.Call(&quot;Chen.GetAdd&quot;,10, &amp;data)
+	if err != nil {
+		fmt.Println(&quot;cln.Call error:&quot;, err)
+		return
+	}
+	//3. 打印输出
+	fmt.Println(&quot;计算结果为:&quot;, data)
+}
+</code></pre>
+<h3 id="运行结果">运行结果</h3>
+<p>客户端输出：<code>计算结果为: 110</code></p>
+<h2 id="netrpcjsonrpc库">net/rpc/jsonrpc库</h2>
+<p>Go官方还提供了使用json编解码的rpc库：net/rpc/jsonrpc，但是使用tcp传递数据，不能用http。</p>
+<h3 id="server代码">server代码</h3>
+<pre><code class="language-go">package main
+
+import (
+	&quot;net/rpc&quot;
+	&quot;net&quot;
+	&quot;fmt&quot;
+	&quot;net/rpc/jsonrpc&quot;
+)
+
+type Chen struct {
+}
+
+//rcp方法
+//func (t *T) MethodName(argType T1, replyType *T2) error
+func (this *Chen) GetAdd(data int, sum *int) error {
+
+	*sum = data + 100
+
+	return nil
+}
+
+func main() {
+	//1.对象实例化
+	pd := new(Chen)
+	//2. rpc注册
+	rpc.Register(pd)
+
+	//3. 监听网络
+	ln, err := net.Listen(&quot;tcp&quot;, &quot;127.0.0.1:12306&quot;)
+	if err != nil {
+		fmt.Println(&quot;net.Listen error:&quot;, err)
+		return
+	}
+
+	//4. 处理客户端请求
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			fmt.Println(&quot;Accept error:&quot;, err)
+			continue
+		}
+
+		go func(conn net.Conn) {
+			jsonrpc.ServeConn(conn)
+		}(conn)
+	}
+}
+</code></pre>
+<h3 id="client代码-2">client代码</h3>
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;net/rpc/jsonrpc&quot;
+)
+
+func main() {
+	//1. 连接服务器
+	cln, err := jsonrpc.Dial(&quot;tcp&quot;, &quot;127.0.0.1:12306&quot;)
+	if err != nil {
+		fmt.Println(&quot;jsonrpc.Dial error:&quot;, err)
+		return
+	}
+	defer cln.Close()
+
+	//2. 调用服务器函数
+	var data int
+	err = cln.Call(&quot;Chen.GetAdd&quot;,10, &amp;data)
+	if err != nil {
+		fmt.Println(&quot;cln.Call error:&quot;, err)
+		return
+	}
+	//3. 打印输出
+	fmt.Println(&quot;计算结果为:&quot;, data)
+}
+</code></pre>
+<h3 id="运行结果-2">运行结果</h3>
+<p>客户端输出：<code>计算结果为: 110</code></p>
+<h1 id="grpc">gRPC</h1>
+<p>所以为了真正实现跨主机、跨语言的远程调用，需要使用第三方的RPC库，推荐使用谷歌开源的gRPC。gRPC基于HTTP/2，采用protobuf进行数据编解码，压缩和传输效率更高。可以参考本人的<a href="https://github.com/meetbetter/protocol-buffer-demo">Go语言protobuf入门</a>了解Go语言protobuf的环境搭建和使用。</p>
+<h2 id="grpc安装">gRPC安装</h2>
+<p>由于不能直接访问golang官网，所以安装gPRC和go扩展包比较麻烦，可以从本人<a href="https://github.com/meetbetter/gRPC-Demo">gRPC环境包安装</a>中获取压缩包。</p>
+<pre><code class="language-shell">unzip x.zip -d /$GOPATH/src/golang.org/x
+unzip google.golang.org.zip -d /$GOPATH/src/google.golang.org
+</code></pre>
+<h2 id="grpc环境测试">gRPC环境测试</h2>
+<p>启动服务器端，</p>
+<pre><code class="language-shell">$ cd $GOPATH/src/google.golang.org/grpc/examples/helloworld/greeter_server
+$ go run main.go
+</code></pre>
+<p>启动客户端，</p>
+<pre><code class="language-shell">$ cd $GOPATH/src/google.golang.org/grpc/examples/helloworld/greeter_client
+$ go run main.go
+</code></pre>
+<p>如果客户端打印出<code>2019/06/10 15:26:12 Greeting: Hello world</code>字样即表示gRPC环境正常。</p>
+<h2 id="建立proto文件">建立proto文件</h2>
+<pre><code class="language-protobuf">//版本
+syntax = &quot;proto3&quot;;
+
+//包名
+package myproto;
+
+//服务
+service Hello {
+    //这儿注释才有效
+    rpc GetAdd(In)returns(Out);//这儿注释无效
+}
+
+//传入
+message In {
+    //此处1不是赋值，而是指参数序号
+    int64 num = 1;
+}
+
+//传出
+message Out {
+    //此处1不是赋值，而是指参数序号
+    int64 size = 1;
+}
+</code></pre>
+<h2 id="生成go代码">生成go代码</h2>
+<p>在.proto文件所在目录执行下面的指令，</p>
+<pre><code class="language-shell">protoc --go_out=plugins=grpc:./ *.proto
+</code></pre>
+<blockquote>
+<p>生成go代码时要指定plugins=grpc表示生成的是gRPC代码。</p>
+</blockquote>
+<h2 id="服务端代码">服务端代码</h2>
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	pb &quot;gRPC/myproto&quot; //给package起别名
+	&quot;context&quot;
+	&quot;net&quot;
+	&quot;google.golang.org/grpc&quot;
+)
+
+//1. 结构体
+type Chen struct {
+
+}
+
+//2. 该结构体实现HelloServer interface的方法
+func (this *Chen)GetAdd(ctx context.Context, In *pb.In)(*pb.Out,error)  {
+	return &amp;pb.Out{Size:In.Num+100},nil
+}
+
+func main() {
+	fmt.Println(&quot;server runing...&quot;)
+
+	//3. 创建网络
+	ln, err := net.Listen(&quot;tcp&quot;, &quot;127.0.0.1:12345&quot;)
+	if err != nil {
+		fmt.Println(&quot;net.Listen error:&quot;, err)
+		return
+	}
+	defer ln.Close()
+
+	//4. 创建gRPC句柄
+	srv := grpc.NewServer()
+
+	//5. 注册server
+	pb.RegisterHelloServer(srv, &amp;Chen{})
+
+	//6. 等待网络连接
+	err = srv.Serve(ln)
+	if err != nil {
+		fmt.Println(&quot;srv.Serve error:&quot;, err)
+		return
+	}
+
+}
+</code></pre>
+<h2 id="客户端代码">客户端代码</h2>
+<pre><code class="language-go">package main
+
+import (
+	&quot;google.golang.org/grpc&quot;
+	&quot;fmt&quot;
+	pb &quot;gRPC/myproto&quot;
+	&quot;context&quot;
+)
+
+func main() {
+	//1 连接服务器
+	conn, err := grpc.Dial(&quot;127.0.0.1:12345&quot;,grpc.WithInsecure())//grpc.WithInsecure()指定后才不会报错
+	if err != nil {
+		fmt.Println(&quot;grpc.Dial error:&quot;, err)
+		return
+	}
+	defer conn.Close()
+
+	//2 创建客户端句柄
+	cln := pb.NewHelloClient(conn)
+
+	//3 调用服务器函数(RPC)
+	out,err := cln.GetAdd(context.Background(), &amp;pb.In{Num:10})
+	if err != nil {
+		fmt.Println(&quot;grpc.Dial error:&quot;, err)
+		return
+	}
+
+	//4 打印
+	fmt.Println(&quot;得到数据:&quot;, out.Size)
+}
+
+</code></pre>
+<h2 id="运行测试">运行测试</h2>
+<p>先后运行服务器和客户端代码，可在客户端打印输出<code>得到数据: 110</code>，说明已经成功在客户端调用服务端程序。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Golang protobuf快速上手]]></title>
+        <id>https://meetbetter.github.io/post/go-protobuf</id>
+        <link href="https://meetbetter.github.io/post/go-protobuf">
+        </link>
+        <updated>2018-11-20T08:08:07.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="说明">说明</h1>
+<p><a href="https://github.com/meetbetter/protocol-buffer-demo">Demo源码</a></p>
+<p>protocol buffer是谷歌推出的高效率序列化反序列化工具，可以自定义数据结构，然后使用对应语言的代码生成器生成的代码读写这个数据结构。虽然在和前端打交道时还是要配合使用JSON，但是在其他场合可以尝试使用protocol buffer改进性能。</p>
+<p>下面总结下在GoLang中使用protocol buffer的方法。</p>
+<h1 id="go环境配置">Go环境配置</h1>
+<h2 id="下载protobuf">下载protobuf</h2>
+<pre><code class="language-shell">git clone https://github.com/protocolbuffers/protobuf.git
+</code></pre>
+<h2 id="安装linux-ubuntu">安装(Linux Ubuntu)</h2>
+<h3 id="1安装依赖工具">(1)安装依赖工具</h3>
+<pre><code class="language-shell">sudo apt-get install autoconf automake libtool curl make g++ unzip libffi-dev -y
+</code></pre>
+<h3 id="2进入protobuf文件">(2)进入protobuf文件</h3>
+<pre><code class="language-shell">cd protobuf/
+</code></pre>
+<h3 id="3进行安装检测-并生成自动安装脚本">(3)进行安装检测 并生成自动安装脚本</h3>
+<pre><code class="language-shell">./autogen.sh
+./configure
+</code></pre>
+<h3 id="4进行编译c代码和安装">(4)进行编译C代码和安装</h3>
+<pre><code class="language-shell">make
+sudo make install
+</code></pre>
+<h3 id="5刷新linux共享库关系">(5)刷新linux共享库关系</h3>
+<pre><code class="language-shell">sudo ldconfig
+</code></pre>
+<h3 id="6测试protobuf编译工具">(6)测试protobuf编译工具</h3>
+<pre><code class="language-shell">protoc -h
+</code></pre>
+<p>如果正常输出 相关指令 没有报任何error，为安装成功。</p>
+<h2 id="获取-golang的proto包">获取 GoLang的proto包</h2>
+<h3 id="1下载">(1)下载</h3>
+<pre><code class="language-shell">go get -v -u github.com/golang/protobuf/proto
+</code></pre>
+<h3 id="2进入到文件夹内进行编译">(2)进入到文件夹内进行编译</h3>
+<pre><code class="language-shell">cd $GOPATH/src/github.com/golang/protobuf/protoc-gen-go/
+go build
+</code></pre>
+<h3 id="3拷贝可执行文件">(3)拷贝可执行文件</h3>
+<p>将生成的 protoc-gen-go可执行文件，放在/bin目录下。</p>
+<pre><code class="language-shell">sudo cp protoc-gen-go /bin/
+</code></pre>
+<p>尝试补齐protoc-gen-go 如果可以补齐代表成功，如果执行不报错 代表工具成功。</p>
+<h1 id="go使用protobuf">Go使用protobuf</h1>
+<h2 id="新建proto文件">新建.proto文件</h2>
+<p>基本格式如下：</p>
+<pre><code class="language-protobuf">syntax = &quot;proto3&quot;; //必须指定protobuf协议版本号
+package pb; //包名
+
+//定义一个protobuf协议
+message Person {
+    string name = 1; //数字表示序号，并不是变量值.
+    int32 age = 2;
+    repeated string hobby = 3; //对应go中[]string
+
+}
+</code></pre>
+<h2 id="生成go数据结构">生成Go数据结构</h2>
+<p>在.proto所在目录执行如下命令，</p>
+<pre><code class="language-shell">protoc --go_out=.  *.proto
+</code></pre>
+<p>在当前目录下会生成对应的.go文件，可以在其中找到go的数据结构，</p>
+<pre><code class="language-go">type Person struct {
+	Name                 string   `protobuf:&quot;bytes,1,opt,name=name,proto3&quot; json:&quot;name,omitempty&quot;`
+	Age                  int32    `protobuf:&quot;varint,2,opt,name=age,proto3&quot; json:&quot;age,omitempty&quot;`
+	Hobby                []string `protobuf:&quot;bytes,3,rep,name=hobby,proto3&quot; json:&quot;hobby,omitempty&quot;`
+	XXX_NoUnkeyedLiteral struct{} `json:&quot;-&quot;`
+	XXX_unrecognized     []byte   `json:&quot;-&quot;`
+	XXX_sizecache        int32    `json:&quot;-&quot;`
+}
+</code></pre>
+<p><strong>注意</strong>，该文件只能生成不能手动修改。</p>
+<h2 id="使用protobuf">使用protobuf</h2>
+<p>在main函数中新建Person对象并进行序列化和反序列化，</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;protobufDemo/pb&quot;
+	&quot;github.com/golang/protobuf/proto&quot;
+	&quot;fmt&quot;
+)
+
+func main() {
+
+	//序列化
+	person := &amp;pb.Person{
+		Name:&quot;Jack&quot;,
+		Age:18,
+		Hobby:[]string{&quot;sing&quot;,&quot;dance&quot;,&quot;basketball&quot;,&quot;rap&quot;},
+	}
+
+	binaryData, err := proto.Marshal(person)
+	if err != nil {
+		fmt.Println(&quot;proto.Marshal err:&quot;,err)
+	}
+
+	//反序列化
+	newPerson := &amp;pb.Person{}
+	err = proto.Unmarshal(binaryData,newPerson)
+	if err != nil {
+		fmt.Println(&quot;proto.Unmarshal err:&quot;,err)
+	}
+
+	fmt.Println(&quot;序列化前的原始数据:&quot;,person)
+	fmt.Println(&quot;反序列化得到数据:&quot;,newPerson)
+}
+
+</code></pre>
+<p>执行后可以看到person和newPerson都喜欢<strong>唱、跳、篮球和rap</strong>。</p>
+<pre><code class="language-shell">序列化前的原始数据: name:&quot;Jack&quot; age:18 hobby:&quot;sing&quot; hobby:&quot;dance&quot; hobby:&quot;basketball&quot; hobby:&quot;rap&quot; 
+反序列化得到数据: name:&quot;Jack&quot; age:18 hobby:&quot;sing&quot; hobby:&quot;dance&quot; hobby:&quot;basketball&quot; hobby:&quot;rap&quot;
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
         <title type="html"><![CDATA[Go“一个包含nil指针的接口不是nil接口”踩坑]]></title>
         <id>https://meetbetter.github.io/post/go-interface-nil</id>
         <link href="https://meetbetter.github.io/post/go-interface-nil">
@@ -1014,520 +1528,6 @@ func main() {
             fmt.Println(data)
         }
 </code></pre>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Golang map底层实现]]></title>
-        <id>https://meetbetter.github.io/post/go-map</id>
-        <link href="https://meetbetter.github.io/post/go-map">
-        </link>
-        <updated>2018-09-30T13:46:28.000Z</updated>
-        <content type="html"><![CDATA[<p>首先否定两个错误说法：“map高效率是因为map是链式结构存储”，“map的无序是因为map是散列表”。这是之前听到的说法，后来深入学习了golang map的底层实现后，发现这些说法是很错误的，现在将自己学习map的心得整理出来，欢迎指正。</p>
-<h1 id="map的底层实现">map的底层实现</h1>
-<p>粗略的讲，Go语言中map采用的是哈希查找表，由一个key通过哈希函数得到哈希值，64位系统中就生成一个64bit的哈希值，由这个哈希值将key对应到不同的桶（bucket）中，当有多个哈希映射到相同的的桶中时，使用链表解决哈希冲突。<br>
-详细的说，就涉及到map的数据结构哈希函数，hmap，bmap。</p>
-<h2 id="hash函数">hash函数</h2>
-<p>首先要知道的就是map中哈希函数的作用，go中map使用hash作查找，就是将key作哈希运算，得到一个哈希值，根据哈希值确定key-value落在哪个bucket的哪个cell。golang使用的hash算法和CPU有关，如果cpu支持aes，那么使用aes hash，否则使用memhash。</p>
-<h2 id="map的数据结构">map的数据结构</h2>
-<h3 id="hmap">hmap</h3>
-<p>hmap可以理解为 header of map的缩写，即map数据结构的入口。<br>
-map的数据结构定义在<code>runtime/map.go/hmap</code>中，以下注释来自<a href="https://github.com/cch123/golang-notes/blob/master/map.md">曹大Github map源码分析</a>，我修改了部分注释使之更直白：</p>
-<pre><code class="language-go">// header of map
-type hmap struct {
-    count     int // map 中的元素个数，必须放在 struct 的第一个位置，因为 内置的 len 函数会从这里读取
-    flags     uint8 //map状态标识，比如是否在被写或者迁移等，因为map不是线程安全的所以操作时需要判断flags
-    B         uint8  // log_2 of # of buckets (最多可以放 loadFactor * 2^B 个元素即6.5*2^B，再多就要 hashGrow 了)
-    noverflow uint16 // overflow 的 bucket 的近似数
-    hash0     uint32 // hash seed，随机哈希种子可以防止哈希碰撞攻击
-
-    buckets    unsafe.Pointer // 存储数据的buckets数组的指针， 大小2^B，如果 count == 0 的话，可能是 nil
-    oldbuckets unsafe.Pointer // 一半大小的之前的 bucket 数组，只有在 growing 过程中是非 nil
-    nevacuate  uintptr        // 扩容进度标志，小于此地址的buckets已迁移完成。
-
-    extra *mapextra // 可以减少GC扫描，当 key 和 value 都可以 inline 的时候，就会用这个字段
-}
-</code></pre>
-<p>根据注释可以看出各个字段的作用，需要重点说明的是最后一个字段<code>extra *mapextra</code>，针对key和value都不是指针类型的map，并且大小都小于128字节，则使用mapextra来存储，这样可以避免GC扫描整个map。</p>
-<pre><code class="language-go">type mapextra struct {
-    // 如果 key 和 value 都不包含指针，并且可以被 inline(&lt;=128 字节)
-    // 使用 extra 来存储 overflow bucket，这样可以避免 GC 扫描整个 map
-    // 然而 bmap.overflow 也是个指针。这时候我们只能把这些 overflow 的指针
-    // 都放在 hmap.extra.overflow 和 hmap.extra.oldoverflow 中了
-    // overflow 包含的是 hmap.buckets 的 overflow 的 bucket
-    // oldoverflow 包含扩容时的 hmap.oldbuckets 的 overflow 的 bucket
-    overflow    *[]*bmap
-    oldoverflow *[]*bmap
-
-    // 指向空闲的 overflow bucket 的指针
-    nextOverflow *bmap
-}
-</code></pre>
-<h3 id="bmap">bmap</h3>
-<p>bmap可以理解为buckets of map的缩写，她就是map中bucket的本体，即存key和value数据的“桶”。</p>
-<pre><code class="language-go">type bmap struct {
-    // tophash 是 hash 值的高 8 位
-    tophash [bucketCnt]uint8
-		//以下字段没有显示定义在bmap，但是编译时编译器会自动添加
-    // keys //每个桶最多可以装8个key
-    // values //8个key分别有8个value一一对应
-    // overflow pointer  //发生哈希碰撞之后创建的overflow bucket
-}
-</code></pre>
-<p>根据哈希函数将key生成一个哈希值，其中低位哈希用来判断桶位置，高位哈希用来确定在桶中哪个cell。<strong>低位哈希</strong>就是哈希值的低B位，hmap结构体中的B，比如B为5，2^5=32，即该map有32个桶，只需要取哈希值的低5位就可以确定当前key-value落在哪个桶(bucket)中；<strong>高位哈希</strong>即tophash，是指哈希值的高8bits，根据tophash来确定key在桶中的位置。每个桶可以存储8对key-value，存储结构不是key/value/key/value...，而是key/key..value/value，这样可以避免字节对时的padding，节省内存空间。</p>
-<p>仔细想一下，当不同的key根据哈希得到的tophash和低位hash都一样岂不是会覆盖原来的key-value数据？这种情况有个专业名词叫“哈希碰撞”，这个时候就体现<code>overflow pointer</code>字段的作用了。当某一个key根据自己的哈希值找到对应的bucket和key位置时，发现这个位置已经名花有主，即桶溢出了，就需要存储在overflow bucket（溢出桶），overflow pointer就是指向overflow bucket的指针。如果overflow bucket也溢出了呢？那就再给overflow bucket新建一个overflow bucket，用指针串起来就形成了链式结构，所以开头所说的“map是链式存储并不准确”，map本身有2^B个bucket，只有当发生哈希碰撞后才会在bucket后链式增加overflow bucket。</p>
-<h2 id="map内存布局">map内存布局</h2>
-<p>通过上面我们可以想象map在内存中的布局情况：<br>
-一个map对应着多个buckets，每个bucket后面又因为哈希碰撞而存在数量不定的overflow bucket。<br>
-<img src="https://meetbetter.github.io/post-images/1564210141673.png" alt=""></p>
-<h2 id="扩容">扩容</h2>
-<p>再仔细想一下，如果overflow bucket一直链式增加，但是并不是每个bucket的8个cell都是满的，那map的高效率还能保证吗？<br>
-这就需要用到map的扩容机制了，当向map插入数据时，会判断是否满足以下两个条件之一：</p>
-<ol>
-<li>装载因子是否大于6.5</li>
-</ol>
-<blockquote>
-<p>装载因子 = 元素个数/桶个数，大于6.5时说明大部分桶已经要装满，需要扩容。</p>
-</blockquote>
-<ol start="2">
-<li>overflow bucket是否太多。</li>
-</ol>
-<blockquote>
-<p>当 bucket数量 &lt; 2^15时，如果overflow bucket数量大于bucket数量，则说明overflow bucket数量太多了；<br>
-当bucket数量 &gt;= 2^15时，如果overflow bucket数量大于2^15，则说明overflow bucket数量太多了；<br>
-overflow bucket桶太多说明有很多cell空闲，查找效率就会变低。曹大文章里说导致这种情况的原因是map一遍插入一边删除，但map不是线程安全的，一遍插入一边删除会导致panic，所以我的理解不是同时插入，而是先往map中插入了大量哈希值高低位相同的key，导致overflow bucket数量很多，再删除一些数据，这时装载因子并未大于6.5，但却有大量的overflow bucket，这就造成很多bucke的cell空着，却有大量的overflow bucket，从而降低查询效率。</p>
-</blockquote>
-<p>两种触发条件的适用的场景不一致，扩容方法也不一致。针对第一种装载因子过大的情况，只需要bucket数量增加一倍，即B+1，这称为“双倍扩容”。针对第二种overflow太多的情况，使用的方法是重新排列键值对使之排列更紧密，减少overflow bucket，bucket总数未改变，这称为“等量扩容”。</p>
-<blockquote>
-<p>但是在极端情况下，比如插入了大量的哈希值高低位相同的key，第二种方法也无能为力，为了解决哈希碰撞不得不使用overflow bucket，此时map变成了链式存储，查询和插入效率就会变低，hmap中的hash0字段是makemap时的rand seed，可以降低这种极端情况的发生 。</p>
-</blockquote>
-<p>在第一种情况下，B+1之后，根据key的哈希值低B位查找落在哪个桶也需要加一，即向前多取一位哈希值来当作新的低哈希，所以数据搬移后原来的key可能落在其他桶中，取决于向前取的这一位是0还是1。<br>
-另外，map的扩容是渐进式的扩容，并不是一次性将原bucket的数据搬移到新的地址，这样未免太占用CPU了，而是在每一次访问旧buckets时就搬移一部分，直到全部搬移完成，旧的buckets被GC回收。</p>
-<h2 id="查找过程">查找过程</h2>
-<p>通过上面的介绍可以直到map的查找过程：</p>
-<ol>
-<li>根据key计算出哈希值</li>
-<li>根据哈希值低位确定所在bucket</li>
-<li>根据哈希值高8位确定在bucket中的存储位置</li>
-<li>当前bucket未找到则查找对应的overflow bucket。</li>
-<li>对应位置有数据则对比完整的哈希值，确定是否是要查找的数据</li>
-<li>如果当前处于map进行了扩容，处于数据搬移状态，则优先从oldbuckets查找。</li>
-</ol>
-<p>先用哈希值高低位确定位置再对比完整哈希值的方法提高了查找效率。<br>
-另外要注意：查找不到也不会返回空值，而是返回对应数据类型的零值，所以我们判断map中某个key是否存在时要接收两个返回值，如 <code>data,ok := m[&quot;hahaha&quot;]</code>，第二个返回值为bool类型，标识查询的数据是否存在。</p>
-<h2 id="插入过程">插入过程</h2>
-<p>删除map数据的过程是先查找再删除：</p>
-<ol>
-<li>根据key计算出哈希值</li>
-<li>根据哈希值低位确定所在bucket</li>
-<li>根据哈希值高8位确定在bucket中的存储位置</li>
-<li>查找该key是否存在，已存在则更新，不存在则插入</li>
-</ol>
-<h1 id="map无序的原因">map无序的原因</h1>
-<p>看完上面的内容，可以理解“map高效率是因为map是链式结构存储”是错误的说法了吧，那为什么“map的无序是因为map是散列表”也是错误的呢？之前在网上看到说因为map是哈希的，所以遍历出来是无序的。其实map无序和哈希无关，而是<strong>Go map遍历出的结果是随机的是因为Go设计者故意这样做的</strong>。<br>
-分析如下：<br>
-通过上面的学习已经知道，map的本质是散列表，而map的增长扩容会导致重新进行散列，这就可能使map的遍历结果在扩容前后变得不可靠，Go设计者为了让大家不依赖遍历的顺序，故意在实现map遍历时加入了随机数，让每次遍历的起点--即起始bucket的位置--不一样，即不让遍历都从bucket0开始，所以即使未扩容时我们遍历出来的map也总是无序的(<em><sup>_</sup></em>)。<br>
-看一下runtime.mapiterinit源码：</p>
-<pre><code class="language-go">func mapiterinit(t *maptype, h *hmap, it *hiter) {
-    ...
-    it.t = t
-    it.h = h
-    it.B = h.B
-    it.buckets = h.buckets
-    if t.bucket.kind&amp;kindNoPointers != 0 {
-        h.createOverflow()
-        it.overflow = h.extra.overflow
-        it.oldoverflow = h.extra.oldoverflow
-    }
-
-    r := uintptr(fastrand())
-    if h.B &gt; 31-bucketCntBits {
-        r += uintptr(fastrand()) &lt;&lt; 31
-    }
-    it.startBucket = r &amp; bucketMask(h.B)
-    it.offset = uint8(r &gt;&gt; h.B &amp; (bucketCnt - 1))
-    it.bucket = it.startBucket
-    ...
-
-    mapiternext(it)
-}
-</code></pre>
-<p>这个函数是map遍历前的初始化操作，注意看<code>fastrand())</code>，根据名字也可以猜出它的作用了吧，就是<code>fastrand())</code>生成随机数让每次遍历的起始位置不停变化。<br>
-个人猜测不同CPU下哈希函数的选择可能不同也是促使go设计者这样做的原因之一。</p>
-<h2 id="让map变有序的方法">让map变有序的方法</h2>
-<p>如果想让map遍历结果变得有序，可以自己对map的key进行依次排序，实现如下：</p>
-<pre><code class="language-go">package main
-
-import (
-	&quot;fmt&quot;
-	&quot;sort&quot;
-)
-
-func main() {
-	m := make(map[string]string)
-	m[&quot;111&quot;] = &quot;1111&quot;
-	m[&quot;222&quot;] = &quot;2222&quot;
-	m[&quot;333&quot;] = &quot;3333&quot;
-	m[&quot;444&quot;] = &quot;4444&quot;
-	m[&quot;555&quot;] = &quot;5555&quot;
-
-	sorted_keys := make([]string, 0)
-	for k, _ := range m {
-		sorted_keys = append(sorted_keys, k)
-	}
-
-	// sort 'string' key in increasing order
-	sort.Strings(sorted_keys)
-
-	for _, k := range sorted_keys {
-		fmt.Printf(&quot;k=%v, v=%v\n&quot;, k, m[k])
-	}
-}
-</code></pre>
-<p>至此相信你对Golang map的底层实现有个大概认知了吧，最后再说一句，go中只有值传递，map和channel可以在函数内影响函数外是因为他们make创建时就是返回的对应指针：</p>
-<pre><code class="language-go">func makemap(t *maptype, hint int, h *hmap) *hmap {
-    // 在 64 位系统上 hmap 结构体大小为 48 字节
-    // 32 位系统上是 28 字节
-    if sz := unsafe.Sizeof(hmap{}); sz != 8+5*sys.PtrSize {
-        println(&quot;runtime: sizeof(hmap) =&quot;, sz, &quot;, t.hmap.size =&quot;, t.hmap.size)
-        throw(&quot;bad hmap size&quot;)
-    }
-
-    if hint &lt; 0 || hint &gt; int(maxSliceCap(t.bucket.size)) {
-        hint = 0
-    }
-
-    // 初始化 hmap
-    if h == nil {
-        h = (*hmap)(newobject(t.hmap))
-    }
-    h.hash0 = fastrand()
-
-    // 按照提供的元素个数，找一个可以放得下这么多元素的 B 值
-    B := uint8(0)
-    for overLoadFactor(hint, B) {
-        B++
-    }
-    h.B = B
-
-    // 分配初始的 hash table
-    // 如果 B == 0，buckets 字段会由 mapassign 来 lazily 分配
-    // 因为如果 hint 很大的话，对这部分内存归零会花比较长时间
-    if h.B != 0 {
-        var nextOverflow *bmap
-        h.buckets, nextOverflow = makeBucketArray(t, h.B)
-        if nextOverflow != nil {
-            h.extra = new(mapextra)
-            h.extra.nextOverflow = nextOverflow
-        }
-    }
-
-    return h
-}
-</code></pre>
-<p>参考资料：<br>
-<a href="https://github.com/cch123/golang-notes/blob/master/map.md">曹大map源码分析</a><br>
-<a href="https://www.jianshu.com/p/aa0d4808cbb8">Golang map 的底层实现</a></p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Go RPC对比和示例]]></title>
-        <id>https://meetbetter.github.io/post/go-rpc-learning-1</id>
-        <link href="https://meetbetter.github.io/post/go-rpc-learning-1">
-        </link>
-        <updated>2018-09-15T08:14:22.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="说明">说明</h1>
-<p>做项目中发现自己对很多东西的理解有偏差，所以决定做个总结，也分享给需要的朋友。如有错误和遗漏，欢迎沟通交流。</p>
-<p><a href="https://github.com/meetbetter/gRPC-Demo">GitHub示例源码</a></p>
-<p>本文介绍了Go中原生和第三方RPC使用方法，环境搭建方法并提供了材料。</p>
-<h1 id="rpc">RPC</h1>
-<p>远程过程调用(Remote Procedure Call)，通俗的说，RPC可以实现跨机器、跨语言调用其他计算机的程序。举个例子，我在机器A上用C语言封装了某个功能的函数，我可以通过RPC在机器B上用GO语言调用机器A上的指定函数。<br>
-RPC为C/S模型，通常使用TCP或http协议。</p>
-<h1 id="golang官方rpc">Golang官方RPC</h1>
-<p>go RPC可以利用tcp或http来传递数据，可以对要传递的数据使用多种类型的编解码方式。</p>
-<h2 id="netrpc库">net/rpc库</h2>
-<p>Golang官方的net/rpc库可以通过tcp或http传递数据，但net/rpc库使用encoding/gob进行编解码，支持tcp或http数据传输方式，由于其他语言不支持gob编解码方式，所以使用net/rpc库实现的RPC方法没办法进行跨语言调用。</p>
-<h3 id="server端代码">server端代码</h3>
-<pre><code class="language-go">package main
-
-import (
-	&quot;net/rpc&quot;
-	&quot;net&quot;
-	&quot;fmt&quot;
-	&quot;net/http&quot;
-)
-
-type Chen struct {
-}
-
-//rcp方法
-//func (t *T) MethodName(argType T1, replyType *T2) error
-func (this *Chen) GetAdd(data int, sum *int) error {
-
-	*sum = data + 100
-
-	return nil
-}
-
-func main() {
-	//1.对象实例化
-	pd := new(Chen)
-	//2. rpc注册
-	rpc.Register(pd)
-	//3. rpc网络
-	rpc.HandleHTTP()
-	//4. 监听网络
-	ln, err := net.Listen(&quot;tcp&quot;, &quot;127.0.0.1:12306&quot;)
-	if err != nil {
-		fmt.Println(&quot;net.Listen error:&quot;, err)
-		return
-	}
-	//5. 等待连接
-	http.Serve(ln, nil)
-}
-</code></pre>
-<h3 id="client代码">client代码</h3>
-<pre><code class="language-go">package main
-
-import (
-	&quot;net/rpc&quot;
-	&quot;fmt&quot;
-)
-
-func main() {
-	//1. 连接服务器
-	cln, err := rpc.DialHTTP(&quot;tcp&quot;, &quot;127.0.0.1:12306&quot;)
-	if err != nil {
-		fmt.Println(&quot;rpc.Dial error:&quot;, err)
-		return
-	}
-	defer cln.Close()
-
-	//2. 调用服务器函数
-	var data int
-	err = cln.Call(&quot;Chen.GetAdd&quot;,10, &amp;data)
-	if err != nil {
-		fmt.Println(&quot;cln.Call error:&quot;, err)
-		return
-	}
-	//3. 打印输出
-	fmt.Println(&quot;计算结果为:&quot;, data)
-}
-</code></pre>
-<h3 id="运行结果">运行结果</h3>
-<p>客户端输出：<code>计算结果为: 110</code></p>
-<h2 id="netrpcjsonrpc库">net/rpc/jsonrpc库</h2>
-<p>Go官方还提供了使用json编解码的rpc库：net/rpc/jsonrpc，但是使用tcp传递数据，不能用http。</p>
-<h3 id="server代码">server代码</h3>
-<pre><code class="language-go">package main
-
-import (
-	&quot;net/rpc&quot;
-	&quot;net&quot;
-	&quot;fmt&quot;
-	&quot;net/rpc/jsonrpc&quot;
-)
-
-type Chen struct {
-}
-
-//rcp方法
-//func (t *T) MethodName(argType T1, replyType *T2) error
-func (this *Chen) GetAdd(data int, sum *int) error {
-
-	*sum = data + 100
-
-	return nil
-}
-
-func main() {
-	//1.对象实例化
-	pd := new(Chen)
-	//2. rpc注册
-	rpc.Register(pd)
-
-	//3. 监听网络
-	ln, err := net.Listen(&quot;tcp&quot;, &quot;127.0.0.1:12306&quot;)
-	if err != nil {
-		fmt.Println(&quot;net.Listen error:&quot;, err)
-		return
-	}
-
-	//4. 处理客户端请求
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			fmt.Println(&quot;Accept error:&quot;, err)
-			continue
-		}
-
-		go func(conn net.Conn) {
-			jsonrpc.ServeConn(conn)
-		}(conn)
-	}
-}
-</code></pre>
-<h3 id="client代码-2">client代码</h3>
-<pre><code class="language-go">package main
-
-import (
-	&quot;fmt&quot;
-	&quot;net/rpc/jsonrpc&quot;
-)
-
-func main() {
-	//1. 连接服务器
-	cln, err := jsonrpc.Dial(&quot;tcp&quot;, &quot;127.0.0.1:12306&quot;)
-	if err != nil {
-		fmt.Println(&quot;jsonrpc.Dial error:&quot;, err)
-		return
-	}
-	defer cln.Close()
-
-	//2. 调用服务器函数
-	var data int
-	err = cln.Call(&quot;Chen.GetAdd&quot;,10, &amp;data)
-	if err != nil {
-		fmt.Println(&quot;cln.Call error:&quot;, err)
-		return
-	}
-	//3. 打印输出
-	fmt.Println(&quot;计算结果为:&quot;, data)
-}
-</code></pre>
-<h3 id="运行结果-2">运行结果</h3>
-<p>客户端输出：<code>计算结果为: 110</code></p>
-<h1 id="grpc">gRPC</h1>
-<p>所以为了真正实现跨主机、跨语言的远程调用，需要使用第三方的RPC库，推荐使用谷歌开源的gRPC。gRPC基于HTTP/2，采用protobuf进行数据编解码，压缩和传输效率更高。可以参考本人的<a href="https://github.com/meetbetter/protocol-buffer-demo">Go语言protobuf入门</a>了解Go语言protobuf的环境搭建和使用。</p>
-<h2 id="grpc安装">gRPC安装</h2>
-<p>由于不能直接访问golang官网，所以安装gPRC和go扩展包比较麻烦，可以从本人<a href="https://github.com/meetbetter/gRPC-Demo">gRPC环境包安装</a>中获取压缩包。</p>
-<pre><code class="language-shell">unzip x.zip -d /$GOPATH/src/golang.org/x
-unzip google.golang.org.zip -d /$GOPATH/src/google.golang.org
-</code></pre>
-<h2 id="grpc环境测试">gRPC环境测试</h2>
-<p>启动服务器端，</p>
-<pre><code class="language-shell">$ cd $GOPATH/src/google.golang.org/grpc/examples/helloworld/greeter_server
-$ go run main.go
-</code></pre>
-<p>启动客户端，</p>
-<pre><code class="language-shell">$ cd $GOPATH/src/google.golang.org/grpc/examples/helloworld/greeter_client
-$ go run main.go
-</code></pre>
-<p>如果客户端打印出<code>2019/06/10 15:26:12 Greeting: Hello world</code>字样即表示gRPC环境正常。</p>
-<h2 id="建立proto文件">建立proto文件</h2>
-<pre><code class="language-protobuf">//版本
-syntax = &quot;proto3&quot;;
-
-//包名
-package myproto;
-
-//服务
-service Hello {
-    //这儿注释才有效
-    rpc GetAdd(In)returns(Out);//这儿注释无效
-}
-
-//传入
-message In {
-    //此处1不是赋值，而是指参数序号
-    int64 num = 1;
-}
-
-//传出
-message Out {
-    //此处1不是赋值，而是指参数序号
-    int64 size = 1;
-}
-</code></pre>
-<h2 id="生成go代码">生成go代码</h2>
-<p>在.proto文件所在目录执行下面的指令，</p>
-<pre><code class="language-shell">protoc --go_out=plugins=grpc:./ *.proto
-</code></pre>
-<blockquote>
-<p>生成go代码时要指定plugins=grpc表示生成的是gRPC代码。</p>
-</blockquote>
-<h2 id="服务端代码">服务端代码</h2>
-<pre><code class="language-go">package main
-
-import (
-	&quot;fmt&quot;
-	pb &quot;gRPC/myproto&quot; //给package起别名
-	&quot;context&quot;
-	&quot;net&quot;
-	&quot;google.golang.org/grpc&quot;
-)
-
-//1. 结构体
-type Chen struct {
-
-}
-
-//2. 该结构体实现HelloServer interface的方法
-func (this *Chen)GetAdd(ctx context.Context, In *pb.In)(*pb.Out,error)  {
-	return &amp;pb.Out{Size:In.Num+100},nil
-}
-
-func main() {
-	fmt.Println(&quot;server runing...&quot;)
-
-	//3. 创建网络
-	ln, err := net.Listen(&quot;tcp&quot;, &quot;127.0.0.1:12345&quot;)
-	if err != nil {
-		fmt.Println(&quot;net.Listen error:&quot;, err)
-		return
-	}
-	defer ln.Close()
-
-	//4. 创建gRPC句柄
-	srv := grpc.NewServer()
-
-	//5. 注册server
-	pb.RegisterHelloServer(srv, &amp;Chen{})
-
-	//6. 等待网络连接
-	err = srv.Serve(ln)
-	if err != nil {
-		fmt.Println(&quot;srv.Serve error:&quot;, err)
-		return
-	}
-
-}
-</code></pre>
-<h2 id="客户端代码">客户端代码</h2>
-<pre><code class="language-go">package main
-
-import (
-	&quot;google.golang.org/grpc&quot;
-	&quot;fmt&quot;
-	pb &quot;gRPC/myproto&quot;
-	&quot;context&quot;
-)
-
-func main() {
-	//1 连接服务器
-	conn, err := grpc.Dial(&quot;127.0.0.1:12345&quot;,grpc.WithInsecure())//grpc.WithInsecure()指定后才不会报错
-	if err != nil {
-		fmt.Println(&quot;grpc.Dial error:&quot;, err)
-		return
-	}
-	defer conn.Close()
-
-	//2 创建客户端句柄
-	cln := pb.NewHelloClient(conn)
-
-	//3 调用服务器函数(RPC)
-	out,err := cln.GetAdd(context.Background(), &amp;pb.In{Num:10})
-	if err != nil {
-		fmt.Println(&quot;grpc.Dial error:&quot;, err)
-		return
-	}
-
-	//4 打印
-	fmt.Println(&quot;得到数据:&quot;, out.Size)
-}
-
-</code></pre>
-<h2 id="运行测试">运行测试</h2>
-<p>先后运行服务器和客户端代码，可在客户端打印输出<code>得到数据: 110</code>，说明已经成功在客户端调用服务端程序。</p>
 ]]></content>
     </entry>
     <entry>
