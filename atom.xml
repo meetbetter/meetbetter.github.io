@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-08-17T02:44:54.167Z</updated>
+    <updated>2019-08-17T12:14:49.844Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -490,13 +490,13 @@ https://www.kancloud.cn/liupengjie/go/577494</p>
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Golang调度器介绍和跟踪方法]]></title>
+        <title type="html"><![CDATA[Go调度器介绍和容易忽视的问题]]></title>
         <id>https://meetbetter.github.io/post/golang-scheduler</id>
         <link href="https://meetbetter.github.io/post/golang-scheduler">
         </link>
         <updated>2019-02-01T07:31:17.000Z</updated>
-        <content type="html"><![CDATA[<p>本文记录了本人对Golang调度器的理解和奇怪的goroutine执行顺序，以及跟踪调度器的方法，分享出来一起学习，欢迎交流指正。<br>
-<img src="https://i.loli.net/2019/07/31/5d41387a2d73492186.jpg" alt=""></p>
+        <content type="html"><![CDATA[<p>本文记录了本人对Golang调度器的理解和跟踪调度器的方法，特别是一个容易忽略的goroutine执行顺序问题，看了很多篇Golang调度器的文章都没提到这个点，分享出来一起学习，欢迎交流指正。</p>
+<p><img src="https://i.loli.net/2019/07/31/5d41387a2d73492186.jpg" alt=""></p>
 <h1 id="什么是调度器">什么是调度器</h1>
 <p>为了方便刚接触操作系统和高级语言的同学，先用大白话介绍下什么是调度器。<br>
 调度，是将多个程序合理的安排到有限的CPU上来使得每个程序都能够得以执行，实现宏观的并发执行。比如我们的电脑CPU只有四核甚至双核，可是我们却可以在电脑上同时运行几十个程序，这就是操作系统调度器的功劳。但操作系统调度的是进程和线程，线程简单地说就是轻量级的进程，但是每个线程仍需要MB级别的内存，而且如果两个切换的线程在不同的进程中，还需要进程切换，会使CPU在调度这件事上花费大量时间。<br>
@@ -532,7 +532,7 @@ Global G Queue：全局goroutine队列，其中G就代表goroutine，所有M都�
 <li>mcache(内存分配状态)位于P，所以G可以跨M调度，不再存在跨M调度局部性差的问题</li>
 <li>G是抢占调度。不像操作系统按时间片调度线程那样，Go调度器没有时间片概念，G因阻塞和被抢占而暂停，并且G只能在函数调用时有可能被抢占，极端情况下如果G一直做死循环就会霸占一个P和M，Go调度器也无能为力。</li>
 </ol>
-<h1 id="go调度器奇怪的坑">Go调度器奇怪的坑</h1>
+<h1 id="go调度器奇怪的执行顺序">Go调度器奇怪的执行顺序</h1>
 <p>是不是感觉自己对Go调度器工作原理已经有个初步的了解了？下面指出一个坑给你踩一下，小心了！<br>
 请看下面这段代码输出什么：</p>
 <pre><code class="language-go">func main() {
@@ -556,6 +556,7 @@ Global G Queue：全局goroutine队列，其中G就代表goroutine，所有M都�
 }
 </code></pre>
 <p>先仔细想一下再看答案哦！</p>
+<p><img src="https://i.loli.net/2019/07/31/5d41387a2d73492186.jpg" alt=""></p>
 <p>实际的数据结果是：</p>
 <pre><code class="language-go">---&gt; a
 ---&gt; b
@@ -565,7 +566,7 @@ b
 a
 </code></pre>
 <blockquote>
-<p>更多Go调度器示例代码可以在<a href="https://github.com/meetbetter/go-programming/tree/master/02_advance/09_Go-Schedule">跟着示例代码学golang</a>中查看，持续更新，欢迎star。</p>
+<p>Go调度器示例代码可以在<a href="https://github.com/meetbetter/go-programming/tree/master/02_advance/09_Go-Schedule">跟着示例代码学golang</a>中查看。</p>
 </blockquote>
 <p>可能你的第一反应是“不应该是输出a,b,c,吗？为什么输出是c,a,b呢？”<br>
 这里我们虽然是使用for循环创建了3个goroutine，而且创建顺序是a,b,c，按之前的分析应该是将a,b,c三个goroutine依次放进P的局部队列，然后按照顺序依次执行a,b,c所在的goroutine，为什么每次都是先执行c所在的goroutine呢？这是因为同一逻辑处理器中三个任务被创建后 理论上会按顺序 被放在同一个任务队列，但实际上最后那个任务会被放在专一的next（下一个要被执行的任务的意思）的位置，所以优先级最高，最可能先被执行，所以表现为<strong>在同一个goroutine中创建的多个任务中最后创建那个任务最可能先被执行</strong>。</p>
@@ -576,7 +577,7 @@ a
 <p>GODEBUG这个Go运行时环境变量很是强大，通过给其传入不同的key1=value1,key2=value2… 组合，Go的runtime会输出不同的调试信息，比如在这里我们给GODEBUG传入了”schedtrace=1000″，其含义就是每1000ms，打印输出一次goroutine scheduler的状态。<br>
 下面演示使用Golang强大的GODEBUG环境变量可以查看当前程序中Go调度器的状态：</p>
 <blockquote>
-<p>环境为Windows10的Linux子系统(WSL)，<a href="https://github.com/meetbetter/learn-golang/blob/master/00_start/02_Windows10-Linux%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%AE%89%E8%A3%85.md">WSL搭建和使用的代码在learn-golang项目有整理</a>，代码在文末参考的鸟窝的文章中也可以找到。</p>
+<p>环境为Windows10的Linux子系统(WSL)，WSL搭建和使用的代码在<a href="https://github.com/meetbetter/go-programming/blob/master/00_start/02_Windows10-Linux%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%AE%89%E8%A3%85.md">learn-golang项目</a>有整理，代码在文末参考的鸟窝的文章中也可以找到。</p>
 </blockquote>
 <pre><code class="language-go">func main() {
    var wg sync.WaitGroup
@@ -638,7 +639,7 @@ SCHED 22219ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=
 <li>threads=8<br>
 当前程序的总线程数M，包括在执行G的和空闲的</li>
 <li>spinningthreads=0<br>
-处于<strong>自旋</strong>状态的线程，即M在绑定的P的局部队列和全局队列都没有G，M没有销毁而是在四处寻觅有没有可以steal的G，这样可以减少线程的大量创建。</li>
+处于自旋状态的线程，即M在绑定的P的局部队列和全局队列都没有G，M没有销毁而是在四处寻觅有没有可以steal的G，这样可以减少线程的大量创建。</li>
 <li>idlethreads=3<br>
 处于idle空闲状态的线程</li>
 <li>runqueue=0<br>
@@ -680,12 +681,13 @@ SCHED 22219ms: gomaxprocs=4 idleprocs=4 threads=8 spinningthreads=0 idlethreads=
  G17: status=3() m=2 lockedm=-1
  G49: status=3() m=3 lockedm=-1
 </code></pre>
+<p>完整代码可以在<a href="https://github.com/meetbetter/go-programming/tree/master/02_advance/09_Go-Schedule">跟着示例代码学golang</a>中查看，持续更新中，想系统学习Golang的同学可以关注一下。</p>
 <p>参考资料：<br>
-<a href="https://mp.weixin.qq.com/s?__biz=Mzg3MTA0NDQ1OQ==&amp;mid=2247483869&amp;idx=1&amp;sn=bf6f038dbe6c7bde5954fc37c0e449b5&amp;scene=21#wechat_redirect">大彬Go调度器系列</a><br>
-<a href="https://tonybai.com/2017/06/23/an-intro-about-goroutine-scheduler/">也谈goroutine调度器</a><br>
-<a href="https://colobu.com/2016/04/19/Scheduler-Tracing-In-Go/">鸟窝 Go调度器跟踪</a><br>
-<a href="https://zhuanlan.zhihu.com/p/27056944">Go调度器详解</a><br>
-<a href="https://gocn.vip/question/1117">Goroutine执行顺序讨论</a></p>
+<a href="https://mp.weixin.qq.com/s?__biz=Mzg3MTA0NDQ1OQ==&amp;mid=2247483869&amp;idx=1&amp;sn=bf6f038dbe6c7bde5954fc37c0e449b5&amp;scene=21#wechat_redirect">大彬Go调度器系列</a></p>
+<p><a href="https://tonybai.com/2017/06/23/an-intro-about-goroutine-scheduler/">也谈goroutine调度器</a></p>
+<p><a href="https://colobu.com/2016/04/19/Scheduler-Tracing-In-Go/">鸟窝 Go调度器跟踪</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/27056944">Go调度器详解</a></p>
+<p><a href="https://gocn.vip/question/1117">Goroutine执行顺序讨论</a></p>
 ]]></content>
     </entry>
     <entry>
