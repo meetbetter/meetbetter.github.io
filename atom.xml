@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://meetbetter.github.io</id>
     <title>Betterman</title>
-    <updated>2019-08-17T02:40:12.640Z</updated>
+    <updated>2019-08-17T02:41:46.113Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://meetbetter.github.io"/>
     <link rel="self" href="https://meetbetter.github.io/atom.xml"/>
@@ -25,7 +25,7 @@
         <id>https://meetbetter.github.io/post/go-map</id>
         <link href="https://meetbetter.github.io/post/go-map">
         </link>
-        <updated>2019-02-26T13:46:28.000Z</updated>
+        <updated>2019-03-26T13:46:28.000Z</updated>
         <content type="html"><![CDATA[<p>首先否定两个错误说法：“map高效率是因为map是链式结构存储”，“map的无序是因为map是散列表”。这是之前听到的说法，后来深入学习了golang map的底层实现后，发现这些说法是很错误的，现在将自己学习map的心得整理出来，欢迎指正。</p>
 <h1 id="map的底层实现">map的底层实现</h1>
 <p>粗略的讲，Go语言中map采用的是哈希查找表，由一个key通过哈希函数得到哈希值，64位系统中就生成一个64bit的哈希值，由这个哈希值将key对应到不同的桶（bucket）中，当有多个哈希映射到相同的的桶中时，使用链表解决哈希冲突。<br>
@@ -238,7 +238,7 @@ func main() {
         <id>https://meetbetter.github.io/post/golang-concurrent</id>
         <link href="https://meetbetter.github.io/post/golang-concurrent">
         </link>
-        <updated>2019-02-16T12:12:29.000Z</updated>
+        <updated>2019-02-28T12:12:29.000Z</updated>
         <content type="html"><![CDATA[<p>大家经常说“Go语言是为了并发而生”、“Go语言是高并发时代的C语言”，这是因为Go通过goroutine（go中的协程）实现语言层面支持并发，每个goroutine默认只需要8KB的堆栈空间，并且有强大的<a href="https://bettertxt.top/post/golang-scheduler/">Go调度器</a>，所以我们可以轻松开启上万个goroutine。那如果我们需要某些goroutine按照一定的逻辑顺序执行和结束，这么多goroutine如何控制呢？<br>
 下面就介绍Go中控制并发的三种方式：channel、WaitGroup和context。</p>
 <blockquote>
