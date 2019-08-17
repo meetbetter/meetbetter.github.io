@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1566044086641">
+<link rel="shortcut icon" href="https://meetbetter.github.io/favicon.ico?v=1566044749959">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://meetbetter.github.io/styles/main.css">
 
@@ -36,7 +36,7 @@
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://meetbetter.github.io">
-        <img src="https://meetbetter.github.io/images/avatar.png?v=1566044086641" class="site-logo">
+        <img src="https://meetbetter.github.io/images/avatar.png?v=1566044749959" class="site-logo">
         <h1 class="site-title">Betterman</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -182,7 +182,7 @@ a
 <p>可能你的第一反应是“不应该是输出a,b,c,吗？为什么输出是c,a,b呢？”<br>
 这里我们虽然是使用for循环创建了3个goroutine，而且创建顺序是a,b,c，按之前的分析应该是将a,b,c三个goroutine依次放进P的局部队列，然后按照顺序依次执行a,b,c所在的goroutine，为什么每次都是先执行c所在的goroutine呢？这是因为同一逻辑处理器中三个任务被创建后 理论上会按顺序 被放在同一个任务队列，但实际上最后那个任务会被放在专一的next（下一个要被执行的任务的意思）的位置，所以优先级最高，最可能先被执行，所以表现为<strong>在同一个goroutine中创建的多个任务中最后创建那个任务最可能先被执行</strong>。</p>
 <blockquote>
-<p>这段解释来自参考文章《Goroutine执行顺序讨论》中，原代码未加<code>runtime.GOMAXPROCS(1)</code>限制，可能存在a,b所在goroutine也混乱的情况。</p>
+<p>这段解释来自参考文章《Goroutine执行顺序讨论》中。</p>
 </blockquote>
 <h1 id="调度器状态的查看方法">调度器状态的查看方法</h1>
 <p>GODEBUG这个Go运行时环境变量很是强大，通过给其传入不同的key1=value1,key2=value2… 组合，Go的runtime会输出不同的调试信息，比如在这里我们给GODEBUG传入了”schedtrace=1000″，其含义就是每1000ms，打印输出一次goroutine scheduler的状态。<br>
