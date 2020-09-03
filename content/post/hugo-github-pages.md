@@ -1,5 +1,5 @@
 ---
-title: "Hugo_github_pages"
+title: "hugo github pages"
 date: 2020-08-30T23:03:59+08:00
 description: ""
 draft: false
