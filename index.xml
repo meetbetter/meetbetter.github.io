@@ -13,10 +13,10 @@
     
     <item>
       <title>Hugo_github_pages</title>
-      <link>http://localhost:1313/post/hugo_github_pages/</link>
+      <link>http://localhost:1313/post/hugo-github-pages/</link>
       <pubDate>Sun, 30 Aug 2020 23:03:59 +0800</pubDate>
       
-      <guid>http://localhost:1313/post/hugo_github_pages/</guid>
+      <guid>http://localhost:1313/post/hugo-github-pages/</guid>
       <description>&lt;p&gt;记录将博客从hexo迁移到hugo的过程。hugo + github pages + typora，非常适合作为个人博客，记录自己，也分享给有需要的人。&lt;/p&gt;</description>
     </item>
     
