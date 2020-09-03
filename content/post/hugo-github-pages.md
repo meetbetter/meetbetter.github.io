@@ -103,9 +103,7 @@ cp themes/even/exampleSite/config.toml .
 
 #### hugo配置
 
-
-
-
+自定义配置，参考官网
 
 ### git submodules管理静态页面和源文件
 
