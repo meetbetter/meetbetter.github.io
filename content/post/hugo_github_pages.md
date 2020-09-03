@@ -141,3 +141,28 @@ hugo生成的静态页面在public目录，只需要在public将静态页面推�
 
 ### shell脚本
 
+```shell
+#!/bin/bash
+
+echo '生成public'
+pwd
+hugo
+
+gitFunc() {
+        pwd
+        message=`date "+%Y%m%d-%H%M%S"`
+        git add -A
+        git commit -m "${message}"
+        git push
+}
+
+echo '提交submodules,部署pages...'
+cd public
+gitFunc
+
+
+echo '提交soure'
+cd ..
+gitFunc
+```
+
