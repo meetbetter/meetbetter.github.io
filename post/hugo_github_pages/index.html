@@ -50,7 +50,7 @@
 <meta itemprop="description" content="记录将博客从hexo迁移到hugo的过程。hugo &#43; github pages &#43; typora，非常适合作为个人博客，记录自己，也分享给有需要的人。">
 <meta itemprop="datePublished" content="2020-08-30T23:03:59&#43;08:00" />
 <meta itemprop="dateModified" content="2020-08-30T23:03:59&#43;08:00" />
-<meta itemprop="wordCount" content="799">
+<meta itemprop="wordCount" content="916">
 
 
 
@@ -303,6 +303,57 @@ categories: []
 <p>hugo生成的静态页面在public目录，只需要在public将静态页面推送到master分支就可以在meetbetter.github.io看到对应博客。</p>
 <p>在项目根目录可以将源文件推送到github source分支，方便备份原始markdown文件。</p>
 <h3 id="shell脚本">shell脚本</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell"><span class="cp">#!/bin/bash
+</span><span class="cp"></span>
+<span class="nb">echo</span> <span class="s1">&#39;生成public&#39;</span>
+<span class="nb">pwd</span>
+hugo
+
+gitFunc<span class="o">(</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nb">pwd</span>
+        <span class="nv">message</span><span class="o">=</span><span class="sb">`</span>date <span class="s2">&#34;+%Y%m%d-%H%M%S&#34;</span><span class="sb">`</span>
+        git add -A
+        git commit -m <span class="s2">&#34;</span><span class="si">${</span><span class="nv">message</span><span class="si">}</span><span class="s2">&#34;</span>
+        git push
+<span class="o">}</span>
+
+<span class="nb">echo</span> <span class="s1">&#39;提交submodules,部署pages...&#39;</span>
+<span class="nb">cd</span> public
+gitFunc
+
+
+<span class="nb">echo</span> <span class="s1">&#39;提交soure&#39;</span>
+<span class="nb">cd</span> ..
+gitFunc
+</code></pre></td></tr></table>
+</div>
+</div>
     </div>
 
     <div class="post-copyright">
