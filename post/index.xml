@@ -6,13 +6,31 @@
     <description>Recent content in Posts on Betterman</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 30 Aug 2020 23:03:59 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 23 Oct 2020 17:02:07 +0800</lastBuildDate>
     
 	<atom:link href="http://localhost:1313/post/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Hugo_github_pages</title>
+      <title>3</title>
+      <link>http://localhost:1313/post/3/</link>
+      <pubDate>Fri, 23 Oct 2020 17:02:07 +0800</pubDate>
+      
+      <guid>http://localhost:1313/post/3/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>First</title>
+      <link>http://localhost:1313/post/first/</link>
+      <pubDate>Fri, 23 Oct 2020 16:24:02 +0800</pubDate>
+      
+      <guid>http://localhost:1313/post/first/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>hugo github pages</title>
       <link>http://localhost:1313/post/hugo-github-pages/</link>
       <pubDate>Sun, 30 Aug 2020 23:03:59 +0800</pubDate>
       
@@ -27,6 +45,15 @@
       
       <guid>http://localhost:1313/post/hugo-test/</guid>
       <description>&lt;p&gt;这是文章的简介&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>go slice</title>
+      <link>http://localhost:1313/post/go-slice/</link>
+      <pubDate>Thu, 30 Aug 2018 23:03:59 +0800</pubDate>
+      
+      <guid>http://localhost:1313/post/go-slice/</guid>
+      <description>文章说明 总结了go语言中切片slice的特殊性和使用时的注意事项。 个人理解，不足之处欢迎指出。 slice：切片，是go语言中一种常用的数据结</description>
     </item>
     
   </channel>

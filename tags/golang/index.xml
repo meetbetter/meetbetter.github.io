@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Golang on Betterman</title>
+    <link>http://localhost:1313/tags/golang/</link>
+    <description>Recent content in Golang on Betterman</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 30 Aug 2018 23:03:59 +0800</lastBuildDate>
+    
+	<atom:link href="http://localhost:1313/tags/golang/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>go slice</title>
+      <link>http://localhost:1313/post/go-slice/</link>
+      <pubDate>Thu, 30 Aug 2018 23:03:59 +0800</pubDate>
+      
+      <guid>http://localhost:1313/post/go-slice/</guid>
+      <description>文章说明 总结了go语言中切片slice的特殊性和使用时的注意事项。 个人理解，不足之处欢迎指出。 slice：切片，是go语言中一种常用的数据结</description>
+    </item>
+    
+  </channel>
+</rss>

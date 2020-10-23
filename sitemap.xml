@@ -2,21 +2,35 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://localhost:1313/</loc>
-    <lastmod>2020-08-30T23:03:59+08:00</lastmod>
+    <loc>http://localhost:1313/post/3/</loc>
+    <lastmod>2020-10-23T17:02:07+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://localhost:1313/post/hugo-github-pages/</loc>
-    <lastmod>2020-08-30T23:03:59+08:00</lastmod>
+    <loc>http://localhost:1313/</loc>
+    <lastmod>2020-10-23T17:02:07+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://localhost:1313/post/</loc>
+    <lastmod>2020-10-23T17:02:07+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/post/first/</loc>
+    <lastmod>2020-10-23T16:24:02+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/post/hugo-github-pages/</loc>
     <lastmod>2020-08-30T23:03:59+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -31,12 +45,35 @@
   
   <url>
     <loc>http://localhost:1313/categories/</loc>
+    <lastmod>2018-08-30T23:03:59+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/post/go-slice/</loc>
+    <lastmod>2018-08-30T23:03:59+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/tags/golang/</loc>
+    <lastmod>2018-08-30T23:03:59+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/categories/study/</loc>
+    <lastmod>2018-08-30T23:03:59+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://localhost:1313/tags/</loc>
+    <lastmod>2018-08-30T23:03:59+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
