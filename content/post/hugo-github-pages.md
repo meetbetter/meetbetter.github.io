@@ -19,7 +19,7 @@ categories: []
 
 不说概念，只说用途：在github创建一个名为xxx.github.io，里面有名为index.html的文件的话，你访问xxx.github.io域名，就可以看到index.html对应的静态页面。
 
-hugo就是可以将你写的markdown生成对应的静态页面。
+hugo可以将你写的markdown生成对应的静态页面。
 
 typora是非常好用的markdown编辑器。
 
@@ -91,13 +91,13 @@ categories: []
 
 使用[even]()主题，为方便修改，fork到了自己的仓库，并使用git submodules管理：
 
-```
+```shell
 git submodule add git@github.com:meetbetter/hugo-theme-even.git themes/even
 ```
 
 拷贝even配置，并按需修改：
 
-```
+```shell
 cp themes/even/exampleSite/config.toml .
 ```
 
@@ -107,27 +107,29 @@ cp themes/even/exampleSite/config.toml .
 
 ### git submodules管理静态页面和源文件
 
+使用git submodules将静态页面和源文件存放在同一个仓库里。
+
 在项目根目录，初始化git仓库：
 
-```
+```shell
 git init
 ```
 
 创建关联：
 
-```
+```shell
 git remote add origin git@github.com:meetbetter/meetbetter.github.io.git
 ```
 
 将public添加到submodules：
 
-```
+```shell
 git submodule add git@github.com:meetbetter/meetbetter.github.io.git public/
 ```
 
 根目录新建source分支:
 
-```
+```shell
 git checkout -b source
 ```
 
@@ -137,7 +139,17 @@ hugo生成的静态页面在public目录，只需要在public将静态页面推�
 
 在项目根目录可以将源文件推送到github source分支，方便备份原始markdown文件。
 
-### shell脚本
+以后clone仓库：
+
+```shell
+# 递归下载
+git clone --recurse-submodules -j8 
+git@github.com:meetbetter/meetbetter.github.io.git
+# 更新子模块
+git submodule update
+```
+
+### 部署shell脚本
 
 ```shell
 #!/bin/bash
