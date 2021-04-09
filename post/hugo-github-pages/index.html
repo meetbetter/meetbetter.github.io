@@ -50,7 +50,7 @@
 <meta itemprop="description" content="记录将博客从hexo迁移到hugo的过程。hugo &#43; github pages &#43; typora，非常适合作为个人博客，记录自己，也分享给有需要的人。">
 <meta itemprop="datePublished" content="2020-08-30T23:03:59&#43;08:00" />
 <meta itemprop="dateModified" content="2020-08-30T23:03:59&#43;08:00" />
-<meta itemprop="wordCount" content="926">
+<meta itemprop="wordCount" content="994">
 
 
 
@@ -140,7 +140,7 @@
             <li><a href="#github-pages">github pages</a></li>
             <li><a href="#hugo安装和使用">hugo安装和使用</a></li>
             <li><a href="#git-submodules管理静态页面和源文件">git submodules管理静态页面和源文件</a></li>
-            <li><a href="#shell脚本">shell脚本</a></li>
+            <li><a href="#部署shell脚本">部署shell脚本</a></li>
           </ul>
         </li>
       </ul>
@@ -153,7 +153,7 @@
       <p>记录将博客从hexo迁移到hugo的过程。hugo + github pages + typora，非常适合作为个人博客，记录自己，也分享给有需要的人。</p>
 <h3 id="github-pages">github pages</h3>
 <p>不说概念，只说用途：在github创建一个名为xxx.github.io，里面有名为index.html的文件的话，你访问xxx.github.io域名，就可以看到index.html对应的静态页面。</p>
-<p>hugo就是可以将你写的markdown生成对应的静态页面。</p>
+<p>hugo可以将你写的markdown生成对应的静态页面。</p>
 <p>typora是非常好用的markdown编辑器。</p>
 <h3 id="hugo安装和使用">hugo安装和使用</h3>
 <p><a href="https://gohugo.io/">hugo</a>和hexo的对比不多介绍，迁移hugo主要是因为hugo是使用go开发的，但是主题数量和质量确实和hexo有差距。</p>
@@ -249,7 +249,7 @@ categories: []
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">git submodule add git@github.com:meetbetter/hugo-theme-even.git themes/even
+<pre class="chroma"><code class="language-shell" data-lang="shell">git submodule add git@github.com:meetbetter/hugo-theme-even.git themes/even
 </code></pre></td></tr></table>
 </div>
 </div><p>拷贝even配置，并按需修改：</p>
@@ -258,19 +258,20 @@ categories: []
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">cp themes/even/exampleSite/config.toml .
+<pre class="chroma"><code class="language-shell" data-lang="shell">cp themes/even/exampleSite/config.toml .
 </code></pre></td></tr></table>
 </div>
 </div><h4 id="hugo配置">hugo配置</h4>
 <p>自定义配置，参考官网</p>
 <h3 id="git-submodules管理静态页面和源文件">git submodules管理静态页面和源文件</h3>
+<p>使用git submodules将静态页面和源文件存放在同一个仓库里。</p>
 <p>在项目根目录，初始化git仓库：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">git init
+<pre class="chroma"><code class="language-shell" data-lang="shell">git init
 </code></pre></td></tr></table>
 </div>
 </div><p>创建关联：</p>
@@ -279,7 +280,7 @@ categories: []
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">git remote add origin git@github.com:meetbetter/meetbetter.github.io.git
+<pre class="chroma"><code class="language-shell" data-lang="shell">git remote add origin git@github.com:meetbetter/meetbetter.github.io.git
 </code></pre></td></tr></table>
 </div>
 </div><p>将public添加到submodules：</p>
@@ -288,7 +289,7 @@ categories: []
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">git submodule add git@github.com:meetbetter/meetbetter.github.io.git public/
+<pre class="chroma"><code class="language-shell" data-lang="shell">git submodule add git@github.com:meetbetter/meetbetter.github.io.git public/
 </code></pre></td></tr></table>
 </div>
 </div><p>根目录新建source分支:</p>
@@ -297,13 +298,30 @@ categories: []
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">git checkout -b source
+<pre class="chroma"><code class="language-shell" data-lang="shell">git checkout -b <span class="nb">source</span>
 </code></pre></td></tr></table>
 </div>
 </div><p>这样，public下就成为一个子仓库，对应默认分支master，根目录保存博客源文件。</p>
 <p>hugo生成的静态页面在public目录，只需要在public将静态页面推送到master分支就可以在meetbetter.github.io看到对应博客。</p>
 <p>在项目根目录可以将源文件推送到github source分支，方便备份原始markdown文件。</p>
-<h3 id="shell脚本">shell脚本</h3>
+<p>以后clone仓库：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1"># 递归下载</span>
+git clone --recurse-submodules -j8 
+git@github.com:meetbetter/meetbetter.github.io.git
+<span class="c1"># 更新子模块</span>
+git submodule update
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="部署shell脚本">部署shell脚本</h3>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt"> 1
@@ -420,7 +438,7 @@ gitFunc
   <span class="copyright-year">
     &copy; 
     2018 - 
-    2020
+    2021
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>
