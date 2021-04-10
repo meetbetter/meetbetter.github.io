@@ -1,10 +1,9 @@
 ---
-title: "go slice"
+title: "go slice介绍"
 date: 2018-08-30T23:03:59+08:00
 description: ""
 draft: false
 tags: [Golang]
-categories: [study]
 ---
 # 文章说明
 总结了go语言中切片slice的特殊性和使用时的注意事项。

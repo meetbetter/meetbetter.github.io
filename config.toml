@@ -1,7 +1,7 @@
 baseURL = "http://localhost:1313/"
 languageCode = "en"
-defaultContentLanguage = "zh-cn"                             # en / zh-cn / ... (This field determines which i18n file to use)
-title = "Betterman"
+defaultContentLanguage = "en"                             # en / zh-cn / ... (This field determines which i18n file to use)
+title = "Stay Hungry, Stay Foolish"
 preserveTaxonomyNames = true
 enableRobotsTXT = true
 enableEmoji = true
@@ -21,7 +21,7 @@ googleAnalytics = ""      # UA-XXXXXXXX-X
 copyright = ""            # default: author.name ↓        # 默认为下面配置的author.name ↓
 
 [author]                  # essential                     # 必需
-  name = "betterman"
+  name = "meetbetter"
 
 [sitemap]                 # essential                     # 必需
   changefreq = "weekly"
@@ -43,11 +43,11 @@ copyright = ""            # default: author.name ↓        # 默认为下面配
   weight = 30
   identifier = "tags"
   url = "/tags/"
-[[menu.main]]
-  name = "Categories"
-  weight = 40
-  identifier = "categories"
-  url = "/categories/"
+# [[menu.main]]
+#   name = "Categories"
+#   weight = 40
+#   identifier = "categories"
+#   url = "/categories/"
 
 [params]
   version = "4.x"           # Used to give a friendly message when you have an incompatible update
@@ -59,9 +59,9 @@ copyright = ""            # default: author.name ↓        # 默认为下面配
   gitRepo = ""
 
   # site info (optional)                                  # 站点信息（可选，不需要的可以直接注释掉）
-  logoTitle = "Be Better"        # default: the title value    # 默认值: 上面设置的title值
+  logoTitle = ""        # default: the title value    # 默认值: 上面设置的title值
   keywords = ["golang", "数据库","微服务"]
-  description = "好好学习，努力成长."
+  description = "Stay Hungry, Stay Foolish"
 
   # paginate of archives, tags and categories             # 归档、标签、分类每页显示的文章数目，建议修改为一个较大的值
   archivePaginate = 50
@@ -73,7 +73,7 @@ copyright = ""            # default: author.name ↓        # 默认为下面配
   dateFormatToUse = "2006-01-02"
 
   # show word count and read time ?                       # 是否显示字数统计与阅读时间
-  moreMeta = false
+  moreMeta = true
 
   # Syntax highlighting by highlight.js
   highlightInClient = false
@@ -179,7 +179,7 @@ copyright = ""            # default: author.name ↓        # 默认为下面配
     alipay = "/path/to/your/alipay-qr-code.png"           # 支付宝二维码
 
   [params.social]                                         # 社交链接
-    a-email = "codewithtxt@gmail.com"
+    a-email = "Y29kZXdpdGh0eHRAZ21haWwuY29t"
     #b-stack-overflow = "http://localhost:1313"
     #c-twitter = "http://localhost:1313"
     #d-facebook = "http://localhost:1313"

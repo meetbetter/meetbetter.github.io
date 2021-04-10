@@ -1,10 +1,9 @@
 ---
-title: "hugo github pages"
+title: "使用hugo和github pages搭建个人blog"
 date: 2020-08-30T23:03:59+08:00
 description: ""
 draft: false
-tags: []
-categories: []
+tags: [hugo]
 ---
 
 
@@ -17,7 +16,8 @@ categories: []
 
 ### github pages
 
-不说概念，只说用途：在github创建一个名为xxx.github.io，里面有名为index.html的文件的话，你访问xxx.github.io域名，就可以看到index.html对应的静态页面。
+不说概念，只说用途：
+在github创建一个名为xxx.github.io，里面有名为index.html的文件的话，你访问xxx.github.io域名，就可以看到index.html对应的静态页面。
 
 hugo可以将你写的markdown生成对应的静态页面。
 
@@ -35,7 +35,7 @@ brew install hugo
 
 查看hugo版本：
 
-```
+```shell
 hugo version
 Hugo Static Site Generator v0.64.1/extended darwin/amd64 BuildDate: unknown
 ```
@@ -44,25 +44,25 @@ Hugo Static Site Generator v0.64.1/extended darwin/amd64 BuildDate: unknown
 
 创建页面：
 
-```
-hexo new post/hugo-test.md
+```shell
+hugo new post/hugo-test.md
 ```
 
 新建文章：
 
-```
+```shell
 hugo new post/first.md
 ```
 
 生成静态页面：
 
-```
+```shell
 hugo
 ```
 
 本地查看效果：
 
-```
+```shell
 hugo server
 ```
 
@@ -79,7 +79,6 @@ date: {{ .Date }}
 description: ""
 draft: true
 tags: []
-categories: []
 ---
 
 <!--more-->
@@ -89,7 +88,7 @@ categories: []
 
 #### hugo主题
 
-使用[even]()主题，为方便修改，fork到了自己的仓库，并使用git submodules管理：
+使用[even](https://github.com/olOwOlo/hugo-theme-even)主题，为方便修改，fork到了自己的仓库，并使用git submodules管理：
 
 ```shell
 git submodule add git@github.com:meetbetter/hugo-theme-even.git themes/even
