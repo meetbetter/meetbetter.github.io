@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>踩坑记录：nil对象转换成interface不是nil - Stay Hungry, Stay Foolish</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="meetbetter" /><meta name="description" content="" /><meta name="keywords" content="golang, 数据库, 微服务" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.64.1 with theme even" />
+
+
+<link rel="canonical" href="http://localhost:1313/post/go_interface_nil_attention/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+<link href="/sass/main.min.7e632fa1631a235228782c136f36b2b46eb7fa884c69451d96a428f88299d979.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
+
+
+<meta property="og:title" content="踩坑记录：nil对象转换成interface不是nil" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://localhost:1313/post/go_interface_nil_attention/" />
+<meta property="article:published_time" content="2020-08-30T23:03:59+08:00" />
+<meta property="article:modified_time" content="2020-08-30T23:03:59+08:00" />
+<meta itemprop="name" content="踩坑记录：nil对象转换成interface不是nil">
+<meta itemprop="description" content="">
+<meta itemprop="datePublished" content="2020-08-30T23:03:59&#43;08:00" />
+<meta itemprop="dateModified" content="2020-08-30T23:03:59&#43;08:00" />
+<meta itemprop="wordCount" content="2029">
+
+
+
+<meta itemprop="keywords" content="hugo," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="踩坑记录：nil对象转换成interface不是nil"/>
+<meta name="twitter:description" content=""/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Stay Hungry, Stay Foolish</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">Stay Hungry, Stay Foolish</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">踩坑记录：nil对象转换成interface不是nil</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2020-08-30 </span>
+        
+          <span class="more-meta"> 2029 words </span>
+          <span class="more-meta"> 5 mins read </span>
+        
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  <div class="post-toc-content always-active">
+    <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#示例一">示例一</a></li>
+        <li><a href="#示例二">示例二</a></li>
+        <li><a href="#interface底层实现">interface底层实现</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </div>
+</div>
+    <div class="post-content">
+      <p>最近在项目中踩了一个深坑——“nil对象转换成interface不是nil&rdquo;，现象是函数内返回了nil给一个对象，使用interface接收函数返回值判断始终不为nil。总结下分享出来，如果你不是很理解这句话，那推荐认真看下下面的示例代码，避免以后写代码时踩坑。</p>
+<h2 id="示例一">示例一</h2>
+<p>先一起来看下这段代码，你感觉有没有问题呢？</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">IPeople</span> <span class="kd">interface</span> <span class="p">{</span>
+ <span class="nf">hello</span><span class="p">(</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="kd">type</span> <span class="nx">People</span> <span class="kd">struct</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">People</span><span class="p">)</span> <span class="nf">hello</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+ <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;github.com/meetbetter&#34;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">errFunc1</span><span class="p">(</span><span class="nx">in</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="nx">People</span> <span class="p">{</span>
+ <span class="k">if</span> <span class="nx">in</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;importantFunc返回了一个nil&#34;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="kc">nil</span>
+ <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;importantFunc返回了一个非nil值&#34;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="o">&amp;</span><span class="nx">People</span><span class="p">{</span><span class="p">}</span>
+ <span class="p">}</span>
+
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+ <span class="kd">var</span> <span class="nx">i</span> <span class="nx">IPeople</span>
+
+ <span class="nx">in</span> <span class="o">:=</span> <span class="mi">0</span>
+
+ <span class="nx">i</span> <span class="p">=</span> <span class="nf">errFunc1</span><span class="p">(</span><span class="nx">in</span><span class="p">)</span>
+
+ <span class="k">if</span> <span class="nx">i</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;哈，外部接收到也是nil&#34;</span><span class="p">)</span>
+ <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;咦，外部接收到不是nil哦&#34;</span><span class="p">)</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%v, %T\n&#34;</span><span class="p">,</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">i</span><span class="p">)</span>
+ <span class="p">}</span>
+
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>这段代码的执行结果是:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell">importantFunc返回了一个nil
+咦，外部接收到不是nil哦
+&lt;nil&gt;, *main.People
+</code></pre></td></tr></table>
+</div>
+</div><p>可以看到在main函数中收到的返回值不是nil， 明明在errFunc1()函数中返回的是nil，到了main函数为什么收到的不是nil呢？
+这是因为：将nil赋值给<code>*People</code>后再将<code>*People</code>赋值给interface，<code>*People</code>本身是是个指向nil的指针，但是将其赋给接口时只是接口中的值为nil，但是接口中的类型信息为<code>*main.People</code>而不是nil，所以这个接口不是nil。
+是的，Golang中的interface类型包含两部分信息：type和value，只有interface的值和类型都为nil时interface才为nil，interface底层实现可以在后面的源码分析看到。</p>
+<p>先来看看正确的处理接口返回值的方法，是直接将nil赋给interface：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go">
+<span class="kd">func</span> <span class="nf">rightFunc</span><span class="p">(</span><span class="nx">in</span> <span class="kt">int</span><span class="p">)</span> <span class="nx">IPeople</span> <span class="p">{</span>
+ <span class="k">if</span> <span class="nx">in</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;importantFunc返回了一个nil&#34;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="kc">nil</span>
+ <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;importantFunc返回了一个非nil值&#34;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="o">&amp;</span><span class="nx">People</span><span class="p">{</span><span class="p">}</span>
+ <span class="p">}</span>
+
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="示例二">示例二</h2>
+<p>下面的代码更清晰的证明了<code>一个包含nil指针的接口不是nil接口</code>的结论：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">IPeople</span> <span class="kd">interface</span> <span class="p">{</span>
+ <span class="nf">hello</span><span class="p">(</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="kd">type</span> <span class="nx">People</span> <span class="kd">struct</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">People</span><span class="p">)</span> <span class="nf">hello</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+ <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;github.com/meetbetter&#34;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">//错误：将nil的people给空接口后接口就不为nil,因为interface中的value为nil但type不为nil
+</span><span class="c1"></span>
+<span class="kd">func</span> <span class="nf">errFunc</span><span class="p">(</span><span class="p">)</span> <span class="o">*</span><span class="nx">People</span> <span class="p">{</span>
+
+ <span class="k">return</span> <span class="kc">nil</span>
+<span class="p">}</span>
+
+<span class="c1">//正确处理返回nil给接口的方法,返回时go就确定了接口是不是nil
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">rightFunc</span><span class="p">(</span><span class="p">)</span> <span class="nx">IPeople</span> <span class="p">{</span>
+
+ <span class="k">return</span> <span class="kc">nil</span>
+<span class="p">}</span>
+<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+
+ <span class="kd">var</span> <span class="nx">i</span> <span class="nx">IPeople</span>
+ <span class="nx">i</span> <span class="p">=</span> <span class="nf">errFunc</span><span class="p">(</span><span class="p">)</span>
+ <span class="k">if</span> <span class="nx">i</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span> <span class="c1">//想通过接口是否为nil来判断故障，却始终判断接口非空
+</span><span class="c1"></span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;errFunc对了哦，外部接收到也是nil&#34;</span><span class="p">)</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span><span class="p">)</span>
+ <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;errFunc错了咦，外部接收到不是nil哦&#34;</span><span class="p">)</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span><span class="p">)</span>
+ <span class="p">}</span>
+
+ <span class="nx">i</span> <span class="p">=</span> <span class="nf">rightFunc</span><span class="p">(</span><span class="p">)</span>
+ <span class="k">if</span> <span class="nx">i</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;rightFunc对了哦，外部接收到也是nil&#34;</span><span class="p">)</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span><span class="p">)</span>
+ <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;rightFunc错了咦，外部接收到不是nil哦&#34;</span><span class="p">)</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span><span class="p">)</span>
+
+ <span class="p">}</span>
+
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>输出结果：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell">errFunc错了咦，外部接收到不是nil哦
+*main.People
+rightFunc对了哦，外部接收到也是nil
+&lt;nil&gt;
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="interface底层实现">interface底层实现</h2>
+<p>Go中，空接口底层结构为eface，普通接口底层为iface。
+下面的注释信息来自参考文章中，从interface底层实现可以看出iface比eface 中间多了一层itab结构， itab 存储_type信息和[]fun方法集，所以即使data指向了nil 并不代表interface 就是nil， 还要考虑_type信息。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">eface</span> <span class="kd">struct</span> <span class="p">{</span>      <span class="c1">//空接口
+</span><span class="c1"></span>    <span class="nx">_type</span> <span class="o">*</span><span class="nx">_type</span>         <span class="c1">//类型信息
+</span><span class="c1"></span>    <span class="nx">data</span>  <span class="nx">unsafe</span><span class="p">.</span><span class="nx">Pointer</span> <span class="c1">//指向数据的指针(go语言中特殊的指针类型unsafe.Pointer类似于c语言中的void*)
+</span><span class="c1"></span><span class="p">}</span>
+<span class="kd">type</span> <span class="nx">iface</span> <span class="kd">struct</span> <span class="p">{</span>      <span class="c1">//带有方法的接口
+</span><span class="c1"></span>    <span class="nx">tab</span>  <span class="o">*</span><span class="nx">itab</span>           <span class="c1">//存储type信息还有结构实现方法的集合
+</span><span class="c1"></span>    <span class="nx">data</span> <span class="nx">unsafe</span><span class="p">.</span><span class="nx">Pointer</span>  <span class="c1">//指向数据的指针(go语言中特殊的指针类型unsafe.Pointer类似于c语言中的void*)
+</span><span class="c1"></span><span class="p">}</span>
+<span class="kd">type</span> <span class="nx">_type</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">size</span>       <span class="kt">uintptr</span>  <span class="c1">//类型大小
+</span><span class="c1"></span>    <span class="nx">ptrdata</span>    <span class="kt">uintptr</span>  <span class="c1">//前缀持有所有指针的内存大小
+</span><span class="c1"></span>    <span class="nx">hash</span>       <span class="kt">uint32</span>   <span class="c1">//数据hash值
+</span><span class="c1"></span>    <span class="nx">tflag</span>      <span class="nx">tflag</span>
+    <span class="nx">align</span>      <span class="kt">uint8</span>    <span class="c1">//对齐
+</span><span class="c1"></span>    <span class="nx">fieldalign</span> <span class="kt">uint8</span>    <span class="c1">//嵌入结构体时的对齐
+</span><span class="c1"></span>    <span class="nx">kind</span>       <span class="kt">uint8</span>    <span class="c1">//kind 有些枚举值kind等于0是无效的
+</span><span class="c1"></span>    <span class="nx">alg</span>        <span class="o">*</span><span class="nx">typeAlg</span> <span class="c1">//函数指针数组，类型实现的所有方法
+</span><span class="c1"></span>    <span class="nx">gcdata</span>    <span class="o">*</span><span class="kt">byte</span>
+    <span class="nx">str</span>       <span class="nx">nameOff</span>
+    <span class="nx">ptrToThis</span> <span class="nx">typeOff</span>
+<span class="p">}</span>
+<span class="kd">type</span> <span class="nx">itab</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">inter</span>  <span class="o">*</span><span class="nx">interfacetype</span>  <span class="c1">//接口类型
+</span><span class="c1"></span>    <span class="nx">_type</span>  <span class="o">*</span><span class="nx">_type</span>          <span class="c1">//结构类型
+</span><span class="c1"></span>    <span class="nx">link</span>   <span class="o">*</span><span class="nx">itab</span>
+    <span class="nx">bad</span>    <span class="kt">int32</span>
+    <span class="nx">inhash</span> <span class="kt">int32</span>
+    <span class="nx">fun</span>    <span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="kt">uintptr</span>      <span class="c1">//可变大小 方法集合
+</span><span class="c1"></span><span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>以上完整代码均整理在<a href="https://github.com/meetbetter/learn-golang/tree/master/02_advance/11_nil-interface">Github-跟着示例代码学Golang项目</a>。</p>
+<p>参考文章：</p>
+<p><a href="https://studygolang.com/articles/10635">Golang第一大坑</a></p>
+<p><a href="https://gocn.vip/question/1011">&ldquo;一个包含nil指针的接口不是nil接口&quot;的讨论</a></p>
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">meetbetter</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+        2020-08-30
+        
+    </span>
+  </p>
+  
+  
+</div>
+<footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/hugo/">hugo</a>
+          </div>
+      <nav class="post-nav">
+        <a class="prev" href="/post/hugo_github_pages/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">使用hugo和github pages搭建个人blog</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        <a class="next" href="/post/go_slice/">
+            <span class="next-text nav-default">go slice介绍</span>
+            <span class="next-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+
+  
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="Y29kZXdpdGh0eHRAZ21haWwuY29t" class="iconfont icon-email" title="email"></a>
+      <a href="https://github.com/meetbetter" class="iconfont icon-github" title="github"></a>
+  <a href="http://localhost:1313/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy; 
+    2018 - 
+    2021
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">meetbetter</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js" integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin="anonymous"></script>
+
+
+
+<script type="text/javascript" src="/js/main.min.d7b7ada643c9c1a983026e177f141f7363b4640d619caf01d8831a6718cd44ea.js"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>

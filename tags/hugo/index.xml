@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Stay Hungry, Stay Foolish</title>
-    <link>http://localhost:1313/</link>
-    <description>Recent content on Stay Hungry, Stay Foolish</description>
+    <title>hugo on Stay Hungry, Stay Foolish</title>
+    <link>http://localhost:1313/tags/hugo/</link>
+    <description>Recent content in hugo on Stay Hungry, Stay Foolish</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sun, 30 Aug 2020 23:03:59 +0800</lastBuildDate>
     
-	<atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://localhost:1313/tags/hugo/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -27,15 +27,6 @@
       
       <guid>http://localhost:1313/post/go_interface_nil_attention/</guid>
       <description></description>
-    </item>
-    
-    <item>
-      <title>go slice介绍</title>
-      <link>http://localhost:1313/post/go_slice/</link>
-      <pubDate>Thu, 30 Aug 2018 23:03:59 +0800</pubDate>
-      
-      <guid>http://localhost:1313/post/go_slice/</guid>
-      <description>文章说明 总结了go语言中切片slice的特殊性和使用时的注意事项。 个人理解，不足之处欢迎指出。 slice：切片，是go语言中一种常用的数据结</description>
     </item>
     
   </channel>
