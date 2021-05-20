@@ -74,7 +74,7 @@ hugo server
 
 ```
 ---
-title: "{{ replace .TranslationBaseName "-" " " | title }}"
+title: "{{ replace .TranslationBaseName "_" " " | title }}"
 date: {{ .Date }}
 description: ""
 draft: true
@@ -84,14 +84,16 @@ tags: []
 <!--more-->
 ```
 
+比如使用`hugo new post/first_hugo_blog.md`新建了一个文件，则对应文章的title则为`first hugo blog`。因为我习惯文件名使用`_`分割，请按自己的情况修改。
 
 
-#### hugo主题
+#### 选择hugo主题
 
-使用[even](https://github.com/olOwOlo/hugo-theme-even)主题，为方便修改，fork到了自己的仓库，并使用git submodules管理：
+我使用[even](https://github.com/olOwOlo/hugo-theme-even)主题。
+将even主题下载到项目的themes目录：
 
 ```shell
-git submodule add git@github.com:meetbetter/hugo-theme-even.git themes/even
+git clone git@github.com:olOwOlo/hugo-theme-even.git themes
 ```
 
 拷贝even配置，并按需修改：
@@ -102,11 +104,11 @@ cp themes/even/exampleSite/config.toml .
 
 #### hugo配置
 
-自定义配置，参考官网
+自定义配置，参考config.toml注释和官网。
 
 ### git submodules管理静态页面和源文件
 
-使用git submodules将静态页面和源文件存放在同一个仓库里。
+使用git submodules将静态页面和源文件存放在同一个仓库里，方便维护。
 
 在项目根目录，初始化git仓库：
 
@@ -126,7 +128,7 @@ git remote add origin git@github.com:meetbetter/meetbetter.github.io.git
 git submodule add git@github.com:meetbetter/meetbetter.github.io.git public/
 ```
 
-根目录新建source分支:
+项目根目录新建source分支:
 
 ```shell
 git checkout -b source
@@ -153,25 +155,29 @@ git submodule update
 ```shell
 #!/bin/bash
 
-echo '生成public'
-pwd
-hugo
-
 gitFunc() {
         pwd
-        message=`date "+%Y%m%d-%H%M%S"`
+        message=`date "+%Y-%m%d %H:%M:%S"`
         git add -A
         git commit -m "${message}"
         git push
 }
 
-echo '提交submodules,部署pages...'
+echo '生成public'
+pwd
+hugo
+
+
+echo '【提交submodules,部署pages...】'
 cd public
 gitFunc
 
 
-echo '提交soure'
+echo '【提交soure...】'
 cd ..
 gitFunc
+
+
+echo '【OK】'
 ```
 

@@ -3,7 +3,7 @@ title: "踩坑记录：nil对象转换成interface不是nil"
 date: 2020-08-30T23:03:59+08:00
 description: ""
 draft: false
-tags: [hugo]
+tags: [golang]
 ---
 
 
