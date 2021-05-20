@@ -2,6 +2,55 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://localhost:1313/post/</loc>
+    <lastmod>2021-05-15T16:51:31+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/tags/rabbitmq/</loc>
+    <lastmod>2021-05-15T16:51:31+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/post/rabbitmq-quickstart/</loc>
+    <lastmod>2021-05-15T16:51:31+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/</loc>
+    <lastmod>2021-05-15T16:51:31+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/tags/</loc>
+    <lastmod>2021-05-15T16:51:31+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/post/go-defer-panic-recover/</loc>
+    <lastmod>2021-04-10T14:54:58+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/tags/golang/</loc>
+    <lastmod>2021-04-10T14:54:58+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://localhost:1313/tags/hugo/</loc>
     <lastmod>2020-08-30T23:03:59+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -9,49 +58,21 @@
   </url>
   
   <url>
-    <loc>http://localhost:1313/post/</loc>
+    <loc>http://localhost:1313/post/hugo-github-pages/</loc>
     <lastmod>2020-08-30T23:03:59+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://localhost:1313/</loc>
+    <loc>http://localhost:1313/post/go-interface-nil-attention/</loc>
     <lastmod>2020-08-30T23:03:59+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://localhost:1313/tags/</loc>
-    <lastmod>2020-08-30T23:03:59+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://localhost:1313/post/hugo_github_pages/</loc>
-    <lastmod>2020-08-30T23:03:59+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://localhost:1313/post/go_interface_nil_attention/</loc>
-    <lastmod>2020-08-30T23:03:59+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://localhost:1313/post/go_slice/</loc>
-    <lastmod>2018-08-30T23:03:59+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://localhost:1313/tags/golang/</loc>
+    <loc>http://localhost:1313/post/go-slice/</loc>
     <lastmod>2018-08-30T23:03:59+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>

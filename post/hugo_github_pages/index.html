@@ -50,7 +50,7 @@
 <meta itemprop="description" content="记录将博客从hexo迁移到hugo的过程。hugo &#43; github pages &#43; typora，非常适合作为个人博客，记录自己，也分享给有需要的人。">
 <meta itemprop="datePublished" content="2020-08-30T23:03:59&#43;08:00" />
 <meta itemprop="dateModified" content="2020-08-30T23:03:59&#43;08:00" />
-<meta itemprop="wordCount" content="991">
+<meta itemprop="wordCount" content="1115">
 
 
 
@@ -120,8 +120,8 @@
       <div class="post-meta">
         <span class="post-time"> 2020-08-30 </span>
         
-          <span class="more-meta"> 991 words </span>
-          <span class="more-meta"> 2 mins read </span>
+          <span class="more-meta"> 1115 words </span>
+          <span class="more-meta"> 3 mins read </span>
         
       </div>
     </header>
@@ -229,7 +229,7 @@ Hugo Static Site Generator v0.64.1/extended darwin/amd64 BuildDate: unknown
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-fallback" data-lang="fallback">---
-title: &#34;{{ replace .TranslationBaseName &#34;-&#34; &#34; &#34; | title }}&#34;
+title: &#34;{{ replace .TranslationBaseName &#34;_&#34; &#34; &#34; | title }}&#34;
 date: {{ .Date }}
 description: &#34;&#34;
 draft: true
@@ -239,14 +239,16 @@ tags: []
 &lt;!--more--&gt;
 </code></pre></td></tr></table>
 </div>
-</div><h4 id="hugo主题">hugo主题</h4>
-<p>使用<a href="https://github.com/olOwOlo/hugo-theme-even">even</a>主题，为方便修改，fork到了自己的仓库，并使用git submodules管理：</p>
+</div><p>比如使用<code>hugo new post/first_hugo_blog.md</code>新建了一个文件，则对应文章的title则为<code>first hugo blog</code>。因为我习惯文件名使用<code>_</code>分割，请按自己的情况修改。</p>
+<h4 id="选择hugo主题">选择hugo主题</h4>
+<p>我使用<a href="https://github.com/olOwOlo/hugo-theme-even">even</a>主题。
+将even主题下载到项目的themes目录：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-shell" data-lang="shell">git submodule add git@github.com:meetbetter/hugo-theme-even.git themes/even
+<pre class="chroma"><code class="language-shell" data-lang="shell">git clone git@github.com:olOwOlo/hugo-theme-even.git themes
 </code></pre></td></tr></table>
 </div>
 </div><p>拷贝even配置，并按需修改：</p>
@@ -259,9 +261,9 @@ tags: []
 </code></pre></td></tr></table>
 </div>
 </div><h4 id="hugo配置">hugo配置</h4>
-<p>自定义配置，参考官网</p>
+<p>自定义配置，参考config.toml注释和官网。</p>
 <h3 id="git-submodules管理静态页面和源文件">git submodules管理静态页面和源文件</h3>
-<p>使用git submodules将静态页面和源文件存放在同一个仓库里。</p>
+<p>使用git submodules将静态页面和源文件存放在同一个仓库里，方便维护。</p>
 <p>在项目根目录，初始化git仓库：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -289,7 +291,7 @@ tags: []
 <pre class="chroma"><code class="language-shell" data-lang="shell">git submodule add git@github.com:meetbetter/meetbetter.github.io.git public/
 </code></pre></td></tr></table>
 </div>
-</div><p>根目录新建source分支:</p>
+</div><p>项目根目录新建source分支:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
@@ -343,56 +345,54 @@ git submodule update
 </span><span class="lnt">20
 </span><span class="lnt">21
 </span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-shell" data-lang="shell"><span class="cp">#!/bin/bash
 </span><span class="cp"></span>
-<span class="nb">echo</span> <span class="s1">&#39;生成public&#39;</span>
-<span class="nb">pwd</span>
-hugo
-
 gitFunc<span class="o">(</span><span class="o">)</span> <span class="o">{</span>
         <span class="nb">pwd</span>
-        <span class="nv">message</span><span class="o">=</span><span class="sb">`</span>date <span class="s2">&#34;+%Y%m%d-%H%M%S&#34;</span><span class="sb">`</span>
+        <span class="nv">message</span><span class="o">=</span><span class="sb">`</span>date <span class="s2">&#34;+%Y-%m%d %H:%M:%S&#34;</span><span class="sb">`</span>
         git add -A
         git commit -m <span class="s2">&#34;</span><span class="si">${</span><span class="nv">message</span><span class="si">}</span><span class="s2">&#34;</span>
         git push
 <span class="o">}</span>
 
-<span class="nb">echo</span> <span class="s1">&#39;提交submodules,部署pages...&#39;</span>
+<span class="nb">echo</span> <span class="s1">&#39;生成public&#39;</span>
+<span class="nb">pwd</span>
+hugo
+
+
+<span class="nb">echo</span> <span class="s1">&#39;【提交submodules,部署pages...】&#39;</span>
 <span class="nb">cd</span> public
 gitFunc
 
 
-<span class="nb">echo</span> <span class="s1">&#39;提交soure&#39;</span>
+<span class="nb">echo</span> <span class="s1">&#39;【提交soure...】&#39;</span>
 <span class="nb">cd</span> ..
 gitFunc
+
+
+<span class="nb">echo</span> <span class="s1">&#39;【OK】&#39;</span>
 </code></pre></td></tr></table>
 </div>
 </div>
     </div>
 
-    <div class="post-copyright">
-  <p class="copyright-item">
-    <span class="item-title">Author</span>
-    <span class="item-content">meetbetter</span>
-  </p>
-  <p class="copyright-item">
-    <span class="item-title">LastMod</span>
-    <span class="item-content">
-        2020-08-30
-        
-    </span>
-  </p>
-  
-  
-</div>
+    
 <footer class="post-footer">
       <div class="post-tags">
           <a href="/tags/hugo/">hugo</a>
           </div>
       <nav class="post-nav">
-        
+        <a class="prev" href="/post/go_defer_panic_recover/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Go defer panic recover使用</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
         <a class="next" href="/post/go_interface_nil_attention/">
             <span class="next-text nav-default">踩坑记录：nil对象转换成interface不是nil</span>
             <span class="next-text nav-mobile">Next</span>

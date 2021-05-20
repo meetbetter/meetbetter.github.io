@@ -6,35 +6,53 @@
     <description>Recent content on Stay Hungry, Stay Foolish</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 30 Aug 2020 23:03:59 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 15 May 2021 16:51:31 +0800</lastBuildDate>
     
 	<atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>RabbitMQ 快速入门</title>
+      <link>http://localhost:1313/post/rabbitmq-quickstart/</link>
+      <pubDate>Sat, 15 May 2021 16:51:31 +0800</pubDate>
+      
+      <guid>http://localhost:1313/post/rabbitmq-quickstart/</guid>
+      <description>&lt;p&gt;介绍RabbitMQ的基础知识，和在电商系统中的使用场景。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Go defer panic recover使用</title>
+      <link>http://localhost:1313/post/go-defer-panic-recover/</link>
+      <pubDate>Sat, 10 Apr 2021 14:54:58 +0800</pubDate>
+      
+      <guid>http://localhost:1313/post/go-defer-panic-recover/</guid>
+      <description>&lt;p&gt;总结下defer panic recover的用法和坑，如果你清楚他们的用法，那你可以看下最后的defer的坑，自查一下会不会掉进去。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>使用hugo和github pages搭建个人blog</title>
-      <link>http://localhost:1313/post/hugo_github_pages/</link>
+      <link>http://localhost:1313/post/hugo-github-pages/</link>
       <pubDate>Sun, 30 Aug 2020 23:03:59 +0800</pubDate>
       
-      <guid>http://localhost:1313/post/hugo_github_pages/</guid>
+      <guid>http://localhost:1313/post/hugo-github-pages/</guid>
       <description>&lt;p&gt;记录将博客从hexo迁移到hugo的过程。hugo + github pages + typora，非常适合作为个人博客，记录自己，也分享给有需要的人。&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>踩坑记录：nil对象转换成interface不是nil</title>
-      <link>http://localhost:1313/post/go_interface_nil_attention/</link>
+      <link>http://localhost:1313/post/go-interface-nil-attention/</link>
       <pubDate>Sun, 30 Aug 2020 23:03:59 +0800</pubDate>
       
-      <guid>http://localhost:1313/post/go_interface_nil_attention/</guid>
+      <guid>http://localhost:1313/post/go-interface-nil-attention/</guid>
       <description></description>
     </item>
     
     <item>
       <title>go slice介绍</title>
-      <link>http://localhost:1313/post/go_slice/</link>
+      <link>http://localhost:1313/post/go-slice/</link>
       <pubDate>Thu, 30 Aug 2018 23:03:59 +0800</pubDate>
       
-      <guid>http://localhost:1313/post/go_slice/</guid>
+      <guid>http://localhost:1313/post/go-slice/</guid>
       <description>文章说明 总结了go语言中切片slice的特殊性和使用时的注意事项。 个人理解，不足之处欢迎指出。 slice：切片，是go语言中一种常用的数据结</description>
     </item>
     

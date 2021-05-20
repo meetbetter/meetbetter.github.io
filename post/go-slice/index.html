@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>go slice - Betterman</title>
+  <title>go slice介绍 - Stay Hungry, Stay Foolish</title>
   <meta name="renderer" content="webkit" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 
@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
 
-<meta name="author" content="betterman" /><meta name="description" content="文章说明 总结了go语言中切片slice的特殊性和使用时的注意事项。 个人理解，不足之处欢迎指出。 slice：切片，是go语言中一种常用的数据结" /><meta name="keywords" content="golang, 数据库, 微服务" />
+<meta name="author" content="meetbetter" /><meta name="description" content="文章说明 总结了go语言中切片slice的特殊性和使用时的注意事项。 个人理解，不足之处欢迎指出。 slice：切片，是go语言中一种常用的数据结" /><meta name="keywords" content="golang, 数据库, 微服务" />
 
 
 
@@ -39,13 +39,13 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
 
 
-<meta property="og:title" content="go slice" />
+<meta property="og:title" content="go slice介绍" />
 <meta property="og:description" content="文章说明 总结了go语言中切片slice的特殊性和使用时的注意事项。 个人理解，不足之处欢迎指出。 slice：切片，是go语言中一种常用的数据结" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://localhost:1313/post/go-slice/" />
 <meta property="article:published_time" content="2018-08-30T23:03:59+08:00" />
 <meta property="article:modified_time" content="2018-08-30T23:03:59+08:00" />
-<meta itemprop="name" content="go slice">
+<meta itemprop="name" content="go slice介绍">
 <meta itemprop="description" content="文章说明 总结了go语言中切片slice的特殊性和使用时的注意事项。 个人理解，不足之处欢迎指出。 slice：切片，是go语言中一种常用的数据结">
 <meta itemprop="datePublished" content="2018-08-30T23:03:59&#43;08:00" />
 <meta itemprop="dateModified" content="2018-08-30T23:03:59&#43;08:00" />
@@ -53,8 +53,8 @@
 
 
 
-<meta itemprop="keywords" content="Golang," /><meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="go slice"/>
+<meta itemprop="keywords" content="golang," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="go slice介绍"/>
 <meta name="twitter:description" content="文章说明 总结了go语言中切片slice的特殊性和使用时的注意事项。 个人理解，不足之处欢迎指出。 slice：切片，是go语言中一种常用的数据结"/>
 
 <!--[if lte IE 9]>
@@ -70,7 +70,7 @@
 <body>
   <div id="mobile-navbar" class="mobile-navbar">
   <div class="mobile-header-logo">
-    <a href="/" class="logo">Be Better</a>
+    <a href="/" class="logo">Stay Hungry, Stay Foolish</a>
   </div>
   <div class="mobile-navbar-icon">
     <span></span>
@@ -86,15 +86,13 @@
         <li class="mobile-menu-item">Archives</li>
       </a><a href="/tags/">
         <li class="mobile-menu-item">Tags</li>
-      </a><a href="/categories/">
-        <li class="mobile-menu-item">Categories</li>
       </a>
   </ul>
 </nav>
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
-  <a href="/" class="logo">Be Better</a>
+  <a href="/" class="logo">Stay Hungry, Stay Foolish</a>
 </div>
 
 <nav class="site-navbar">
@@ -105,8 +103,6 @@
         <a class="menu-item-link" href="/post/">Archives</a>
       </li><li class="menu-item">
         <a class="menu-item-link" href="/tags/">Tags</a>
-      </li><li class="menu-item">
-        <a class="menu-item-link" href="/categories/">Categories</a>
       </li>
   </ul>
 </nav>
@@ -118,19 +114,19 @@
           <article class="post">
     
     <header class="post-header">
-      <h1 class="post-title">go slice</h1>
+      <h1 class="post-title">go slice介绍</h1>
 
       <div class="post-meta">
         <span class="post-time"> 2018-08-30 </span>
-        <div class="post-category">
-            <a href="/categories/study/"> study </a>
-            </div>
+        
+          <span class="more-meta"> 839 words </span>
+          <span class="more-meta"> 2 mins read </span>
         
       </div>
     </header>
 
     <div class="post-toc" id="post-toc">
-  <h2 class="post-toc-title">文章目录</h2>
+  <h2 class="post-toc-title">Contents</h2>
   <div class="post-toc-content always-active">
     <nav id="TableOfContents">
   <ul>
@@ -212,30 +208,16 @@
 
     </div>
 
-    <div class="post-copyright">
-  <p class="copyright-item">
-    <span class="item-title">文章作者</span>
-    <span class="item-content">betterman</span>
-  </p>
-  <p class="copyright-item">
-    <span class="item-title">上次更新</span>
-    <span class="item-content">
-        2018-08-30
-        
-    </span>
-  </p>
-  
-  
-</div>
+    
 <footer class="post-footer">
       <div class="post-tags">
-          <a href="/tags/golang/">Golang</a>
+          <a href="/tags/golang/">golang</a>
           </div>
       <nav class="post-nav">
-        <a class="prev" href="/post/hugo-test/">
+        <a class="prev" href="/post/go-interface-nil-attention/">
             <i class="iconfont icon-left"></i>
-            <span class="prev-text nav-default">Hugo Test</span>
-            <span class="prev-text nav-mobile">上一篇</span>
+            <span class="prev-text nav-default">踩坑记录：nil对象转换成interface不是nil</span>
+            <span class="prev-text nav-mobile">Prev</span>
           </a>
         
       </nav>
@@ -253,18 +235,18 @@
 
     <footer id="footer" class="footer">
       <div class="social-links">
-      <a href="codewithtxt@gmail.com" class="iconfont icon-email" title="email"></a>
+      <a href="Y29kZXdpdGh0eHRAZ21haWwuY29t" class="iconfont icon-email" title="email"></a>
       <a href="https://github.com/meetbetter" class="iconfont icon-github" title="github"></a>
   <a href="http://localhost:1313/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
 </div>
 
 <div class="copyright">
   <span class="power-by">
-    由 <a class="hexo-link" href="https://gohugo.io">Hugo</a> 强力驱动
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
   </span>
   <span class="division">|</span>
   <span class="theme-info">
-    主题 - 
+    Theme - 
     <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
   </span>
 
@@ -277,7 +259,7 @@
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span>
-    <span class="author">betterman</span>
+    <span class="author">meetbetter</span>
   </span>
 </div>
     </footer>
