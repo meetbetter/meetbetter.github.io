@@ -36,7 +36,7 @@
 
 
 
-<link href="/sass/main.min.7e632fa1631a235228782c136f36b2b46eb7fa884c69451d96a428f88299d979.css" rel="stylesheet">
+<link href="/sass/main.min.a2095472a2a8d7ddda1334cf60051cbe40ed55f2467554bb6aa4c17c9bcd27a4.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
 
 
@@ -89,12 +89,21 @@
         <li class="mobile-menu-item">Tags</li>
       </a>
   </ul>
+
+  
+
+
 </nav>
+
   <div class="container" id="mobile-panel">
     <header id="header" class="header">
         <div class="logo-wrapper">
   <a href="/" class="logo">Stay Hungry, Stay Foolish</a>
 </div>
+
+
+
+
 
 <nav class="site-navbar">
   <ul id="menu" class="menu">
@@ -107,6 +116,7 @@
       </li>
   </ul>
 </nav>
+
     </header>
 
     <main id="main" class="main">
@@ -229,7 +239,7 @@ Hugo Static Site Generator v0.64.1/extended darwin/amd64 BuildDate: unknown
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-fallback" data-lang="fallback">---
-title: &#34;{{ replace .TranslationBaseName &#34;_&#34; &#34; &#34; | title }}&#34;
+title: &#34;{{ replace .TranslationBaseName &#34;-&#34; &#34; &#34; | title }}&#34;
 date: {{ .Date }}
 description: &#34;&#34;
 draft: true
@@ -239,7 +249,7 @@ tags: []
 &lt;!--more--&gt;
 </code></pre></td></tr></table>
 </div>
-</div><p>比如使用<code>hugo new post/first_hugo_blog.md</code>新建了一个文件，则对应文章的title则为<code>first hugo blog</code>。因为我习惯文件名使用<code>_</code>分割，请按自己的情况修改。</p>
+</div><p>比如使用<code>hugo new post/first_hugo_blog.md</code>新建了一个文件，则对应文章的title则为<code>first hugo blog</code>。因为我习惯文件名使用<code>-</code>分割，请按自己的情况修改。</p>
 <h4 id="选择hugo主题">选择hugo主题</h4>
 <p>我使用<a href="https://github.com/olOwOlo/hugo-theme-even">even</a>主题。
 将even主题下载到项目的themes目录：</p>
@@ -248,7 +258,7 @@ tags: []
 <pre class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-shell" data-lang="shell">git clone git@github.com:olOwOlo/hugo-theme-even.git themes
+<pre class="chroma"><code class="language-shell" data-lang="shell">git clone git@github.com:olOwOlo/hugo-theme-even.git themes/even
 </code></pre></td></tr></table>
 </div>
 </div><p>拷贝even配置，并按需修改：</p>
@@ -433,13 +443,10 @@ gitFunc
   <span class="copyright-year">
     &copy; 
     2018 - 
-    2021
-    <span class="heart">
-      <i class="iconfont icon-heart"></i>
-    </span>
-    <span class="author">meetbetter</span>
+    2021<span class="heart"><i class="iconfont icon-heart"></i></span><span>meetbetter</span>
   </span>
 </div>
+
     </footer>
 
     <div class="back-to-top" id="back-to-top">
@@ -453,7 +460,7 @@ gitFunc
 
 
 
-<script type="text/javascript" src="/js/main.min.d7b7ada643c9c1a983026e177f141f7363b4640d619caf01d8831a6718cd44ea.js"></script>
+<script type="text/javascript" src="/js/main.min.c12618f9a600c40bd024996677e951e64d3487006775aeb22e200c990006c5c7.js"></script>
 
 
 
