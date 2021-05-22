@@ -74,7 +74,7 @@ hugo server
 
 ```
 ---
-title: "{{ replace .TranslationBaseName "_" " " | title }}"
+title: "{{ replace .TranslationBaseName "-" " " | title }}"
 date: {{ .Date }}
 description: ""
 draft: true
@@ -84,7 +84,7 @@ tags: []
 <!--more-->
 ```
 
-比如使用`hugo new post/first_hugo_blog.md`新建了一个文件，则对应文章的title则为`first hugo blog`。因为我习惯文件名使用`_`分割，请按自己的情况修改。
+比如使用`hugo new post/first_hugo_blog.md`新建了一个文件，则对应文章的title则为`first hugo blog`。因为我习惯文件名使用`-`分割，请按自己的情况修改。
 
 
 #### 选择hugo主题
@@ -93,7 +93,7 @@ tags: []
 将even主题下载到项目的themes目录：
 
 ```shell
-git clone git@github.com:olOwOlo/hugo-theme-even.git themes
+git clone git@github.com:olOwOlo/hugo-theme-even.git themes/even
 ```
 
 拷贝even配置，并按需修改：
