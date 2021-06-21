@@ -2,7 +2,7 @@
 
 gitFunc() {
         pwd
-        message=`date "+%Y-%m%d %H:%M:%S"`
+        message=`date "+%Y%m%d %H:%M:%S"`
         git add -A
         git commit -m "${message}"
         git push
